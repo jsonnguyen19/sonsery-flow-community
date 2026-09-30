@@ -1,0 +1,146 @@
+.action-btn {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    opacity 140ms ease;
+  text-align: center;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: var(--bg-3);
+  border-color: var(--border-strong);
+}
+
+.action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.action-btn.primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+
+.action-btn.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.action-btn.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--border);
+}
+
+.action-btn.danger:hover:not(:disabled) {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+}
+
+.action-btn.pinned {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* Pin this tab: icon + label, state reflected by .pinned (accent). */
+.action-btn.pin-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.action-btn.pin-tab-btn .pin-tab-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+/* Pinned state: fill the icon + tint it with the accent so the "on" state
+   is readable at a glance, not just from the label text. */
+.action-btn.pin-tab-btn.pinned .pin-tab-icon {
+  color: var(--accent);
+}
+
+.action-btn.active {
+  background: var(--bg-1);
+  border-color: var(--border-strong);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-1);
+}
+
+.btn-group {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.btn-group .action-btn {
+  flex: 1;
+}
+
+/* Quick Actions: icon-only buttons. Square-ish hit area, no text. */
+.action-btn.qa-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  line-height: 1;
+}
+
+.action-btn.qa-icon-btn .qa-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+/* Danger Zone buttons: icon + label. Label is a span so JS loading states
+   can update text without wiping the icon. */
+.action-btn.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.action-btn.danger-btn .danger-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+/* Inject button: icon + label, sits next to the context dropdown. */
+.action-btn.inject-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.action-btn.inject-btn .inject-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+/* Send is destructive-ish (fires the payload); tint it with the accent so
+   it stands out from Copy/Paste without being full "primary" loud. */
+.action-btn.qa-icon-btn.qa-send {
+  color: var(--accent);
+}
+
+.action-btn.qa-icon-btn.qa-send:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}

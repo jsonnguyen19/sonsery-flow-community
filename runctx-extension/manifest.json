@@ -1,0 +1,120 @@
+{
+  "manifest_version": 3,
+  "name": "Sonsery Flow Community",
+  "version": "0.7.0",
+  "description": "AI workflow automation (community edition) — bridge AI chat to your terminal across ChatGPT, Claude, Gemini, DeepSeek. Zero API keys.",
+  "icons": {
+    "48": "icons/48.png"
+  },
+  "permissions": [
+    "activeTab",
+    "clipboardRead",
+    "clipboardWrite",
+    "scripting",
+    "sidePanel",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://gemini.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://claude.ai/*",
+    "http://127.0.0.1:8765/*",
+    "http://127.0.0.1:8766/*",
+    "http://127.0.0.1:8767/*",
+    "http://127.0.0.1:8768/*",
+    "http://127.0.0.1:8769/*",
+    "http://127.0.0.1:8770/*",
+    "http://127.0.0.1:8771/*",
+    "http://127.0.0.1:8772/*",
+    "http://127.0.0.1:8773/*",
+    "http://127.0.0.1:8774/*",
+    "http://127.0.0.1:8775/*",
+    "http://127.0.0.1:8776/*",
+    "http://127.0.0.1:8777/*",
+    "http://127.0.0.1:8778/*",
+    "http://127.0.0.1:8779/*",
+    "http://127.0.0.1:8780/*",
+    "http://127.0.0.1:8781/*",
+    "http://127.0.0.1:8782/*",
+    "http://127.0.0.1:8783/*",
+    "http://127.0.0.1:8784/*",
+    "http://127.0.0.1:8785/*",
+    "http://127.0.0.1:8899/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "content-marker.js",
+        "utils/hash.js",
+        "utils/sleep.js",
+        "utils/speed-config.js",
+        "utils/speed.js",
+        "utils/toast.js",
+        "utils/sound.js",
+        "utils/logger.js",
+        "transports/clipboard.js",
+        "transports/http-bridge.js",
+        "adapters/chatgpt.js",
+        "adapters/gemini.js",
+        "adapters/deepseek.js",
+        "adapters/claude.js",
+        "adapters/fallback.js",
+        "adapters/index.js",
+        "transports/dom.js",
+        "services/payload-detector.js",
+        "services/payload-stability.js",
+        "services/payload-watcher.js",
+        "services/result-watcher.js",
+        "services/rpc-client.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/sounds/ding.wav"
+      ],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://claude.ai/*"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_icon": "icons/48.png"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space",
+        "mac": "Command+Shift+Space"
+      },
+      "description": "Open extension side panel"
+    },
+    "toggle-automation": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Period",
+        "mac": "Command+Shift+Period"
+      },
+      "description": "Toggle automation on/off"
+    }
+  }
+}

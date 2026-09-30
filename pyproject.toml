@@ -1,0 +1,116 @@
+# ============================================================
+# Sonsery Flow - Python project config
+# ============================================================
+
+[project]
+name = "sonsery-flow"
+version = "0.6.2"
+description = "AI workflow automation: bridge AI chat (ChatGPT/Claude/Gemini/DeepSeek) with the terminal"
+requires-python = ">=3.8"
+readme = "README.md"
+
+# ============================================================
+# Ruff - Linter + Formatter (replaces Flake8 + Black + isort)
+# ============================================================
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
+# Rule sets: E/W (pycodestyle), F (pyflakes), I (isort),
+# B (bugbear), UP (pyupgrade), SIM (simplify), RUF (ruff-specific)
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",  # line too long (delegated to the formatter)
+    "E402",  # module import not at top (needed for setup.py)
+    "B008",  # function call in default arg
+    "SIM105",  # try/except/pass - intentional at times (swallow specific errors)
+    "SIM108",  # ternary - not always clearer than if/else
+    "SIM115",  # open without context - sometimes the file handle must be kept
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests are allowed to use assert, magic values, long lines
+"tests/**/*.py" = ["S101", "PLR2004", "E501"]
+# Intentional facade re-export -> F401 + __all__ grouping -> ignore
+"watchctx.py" = ["F401", "RUF022"]
+"runctx_core.py" = ["F401", "RUF022"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+# ============================================================
+# BasedPyright - Type checker (stricter than pyright)
+# ============================================================
+[tool.basedpyright]
+include = ["runctx_core.py", "watchctx.py", "runctx", "mobile", "tests/python"]
+exclude = [
+    ".venv-test",
+    "venv",
+    "__pycache__",
+    "runctx-extension",
+]
+
+# Type checking mode: "off" | "basic" | "standard" | "strict" | "all"
+# "basic" = basic type checking, suitable for gradual adoption in a legacy project.
+typeCheckingMode = "basic"
+
+# Python version target
+pythonVersion = "3.8"
+
+# Venv path - both local and CI use .venv-test
+venvPath = "."
+venv = ".venv-test"
+
+# --- Key rules: enable real bugs, disable noise ---
+
+# reportOptionalMemberAccess = frequently seen bug -> ON (error)
+reportOptionalMemberAccess = "error"
+reportOptionalSubscript = "error"
+reportOptionalCall = "error"
+reportOptionalIterable = "error"
+
+# --- Noisy rules (Unknown/Any) -> OFF ---
+# Reason: the project lacks full type hints; enabling these yields hundreds
+# of meaningless warnings.
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUnknownArgumentType = false
+reportUnknownParameterType = false
+reportUnknownLambdaType = false
+reportAny = false
+reportUnusedImport = false
+reportUnusedVariable = "warning"
+reportUnusedCallResult = false
+reportUnreachable = "warning"
+
+# False positive: private functions in leaf modules (e.g. `clipboard/linux.py`)
+# are used by `clipboard/__init__.py` -> basedpyright flags them as unused when
+# the file is opened alone. Those modules already declare an explicit `__all__`.
+reportUnusedFunction = false
+
+# --- Stricter on a few useful rules ---
+reportMissingImports = "warning"
+reportMissingModuleSource = "warning"
+
+# ============================================================
+# Pytest config
+# ============================================================
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"

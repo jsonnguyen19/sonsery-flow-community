@@ -1,0 +1,200 @@
+.tabs {
+  flex-shrink: 0;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  margin: var(--sp-3) var(--sp-3) 0;
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 140ms ease;
+  text-align: center;
+  /* Icon-only tabs: center the SVG and keep a comfortable hit area. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+/* Icon inside a bar tab: fixed size, inherits tab color. */
+.tab-btn .tab-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+/* Icon inside an overflow-menu item: slightly smaller than bar icons. */
+.tab-btn .tab-icon-menu {
+  display: block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+/* In the overflow menu, show icon + label side by side. */
+.tabs-overflow-menu .tab-btn .tab-label {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+}
+
+.tab-btn.active {
+  background: var(--bg-1);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+}
+
+.tabs-overflow {
+  position: relative;
+  display: none;
+  flex: 0 0 auto;
+}
+
+.tabs-overflow-btn {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  font-size: var(--fs-md);
+  line-height: 1;
+  position: relative;
+}
+
+/* Small dot indicator: lights up when one of the tabs hidden inside the ⋯
+   menu is the currently active tab. Keeps the user oriented when the active
+   tab is not visible in the bar. */
+.tabs-overflow-btn.has-active::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.tabs-overflow-menu {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 110px;
+  padding: 3px;
+  border-radius: var(--r-md);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-1);
+}
+
+/* The [hidden] attribute must win over the display:flex above. */
+.tabs-overflow-menu[hidden] {
+  display: none;
+}
+
+.tabs-overflow-menu .tab-btn {
+  text-align: left;
+  padding: 6px 10px;
+  flex: 0 0 auto;
+  border-radius: var(--r-sm);
+}
+
+/* Menu items live on --bg-1 (same as the default .tab-btn.active background),
+   so the generic active rule is invisible here. Give the active item a
+   brighter surface + a left accent bar so the current tab is obvious. */
+.tabs-overflow-menu .tab-btn:hover {
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+.tabs-overflow-menu .tab-btn.active {
+  background: var(--bg-3);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: none;
+  position: relative;
+}
+
+.tabs-overflow-menu .tab-btn.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* Collapsed mode (toggled in JS whenever any tab has data-overflow="true"):
+   hide flagged tabs from the bar and route them through the ⋯ menu. */
+/* Only collapse the direct tab-bar buttons; menu items (deeper descendants)
+   must stay visible. */
+.tabs.tabs--collapsed > .tab-btn[data-overflow="true"] {
+  display: none;
+}
+
+.tabs.tabs--collapsed .tabs-overflow {
+  display: block;
+}
+
+/* CSS-only fallback: same rule, applied unconditionally so the layout is
+   correct even before tabs.js runs (or if it fails to load). Any tab marked
+   data-overflow="true" is hidden from the bar and reachable via the ⋯ menu. */
+.tabs > .tab-btn[data-overflow="true"] {
+  display: none;
+}
+
+.tabs .tabs-overflow {
+  display: block;
+}
+
+.tab-content {
+  display: none;
+  padding: var(--sp-4);
+}
+
+.tab-content.active {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-4);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Slim scrollbar: matches .subrun-list so the whole extension feels
+   consistent. Track stays transparent; thumb is a rounded pill. */
+.tab-content.active::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tab-content.active::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-content.active::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--r-full);
+}
+
+.tab-content.active::-webkit-scrollbar-thumb:hover {
+  background: var(--text-mute);
+}

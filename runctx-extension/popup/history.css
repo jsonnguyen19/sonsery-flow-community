@@ -1,0 +1,286 @@
+/* Payload History tab — .hist-* prefix.
+   PA 1: Terminal Log Table Stream — compact data table, mono, fixed columns.
+   Styled per ui-1-overview.md: near-black + indigo accent, no emoji,
+   radius 8-12px, no glow. */
+
+#tab-history.active {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--sp-3);
+}
+
+/* ============ HEADER ============ */
+
+.hist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.hist-header .section-header {
+  margin-bottom: 0;
+}
+
+.hist-meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-mute);
+}
+
+/* ============ VIEWPORT + COLUMN HEADER ============ */
+
+.hist-viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-0);
+  position: relative;
+}
+
+/* Column header — sticky at the top, acting as the table thead. */
+.hist-col-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 14px minmax(50px, 62px) 64px 52px 1fr;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 6px var(--sp-3);
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hist-col-head .hist-col-right {
+  text-align: right;
+}
+
+/* ============ ROW ============ */
+
+#histList {
+  display: flex;
+  flex-direction: column;
+}
+
+.hist-row {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.hist-row:last-child {
+  border-bottom: none;
+}
+
+.hist-row-head {
+  display: grid;
+  grid-template-columns: 14px minmax(50px, 62px) 64px 52px 1fr;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: 7px var(--sp-3);
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  cursor: pointer;
+  text-align: left;
+  transition: background 120ms ease;
+}
+
+.hist-row-head:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+.hist-row.is-expanded .hist-row-head {
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+/* Left accent bar for the open row (like a selected node in the Project tree). */
+.hist-row.is-expanded::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+
+/* Status dot — replaces the badge chip, less visual noise. */
+.hist-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--text-mute);
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+
+.hist-row.is-ok .hist-dot {
+  background: var(--success);
+}
+
+.hist-row.is-error .hist-dot {
+  background: var(--danger);
+}
+
+.hist-row.is-error .hist-tool {
+  color: var(--danger);
+}
+
+.hist-tool {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hist-time,
+.hist-duration {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  white-space: nowrap;
+}
+
+.hist-duration {
+  text-align: right;
+}
+
+.hist-summary {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============ DETAIL EXPAND ============ */
+
+.hist-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3) var(--sp-3) calc(var(--sp-3) + 2px);
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+}
+
+.hist-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hist-detail-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+}
+
+.hist-detail-body {
+  margin: 0;
+  padding: var(--sp-2);
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.hist-detail-loading,
+.hist-detail-error {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-mute);
+  padding: var(--sp-2);
+}
+
+.hist-detail-error {
+  color: var(--danger);
+}
+
+/* ============ EMPTY STATE ============ */
+
+#histEmpty {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  color: var(--text-mute);
+  font-size: var(--fs-xs);
+  text-align: center;
+  position: absolute;
+  inset: 40px 0 0 0;
+}
+
+.hist-empty-icon {
+  color: var(--text-mute);
+  opacity: 0.6;
+}
+
+/* ============ ACTIONS ============ */
+
+.hist-actions {
+  display: flex;
+  gap: var(--sp-1);
+  flex-shrink: 0;
+}
+
+.hist-actions .action-btn {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: var(--fs-xs);
+}
+
+.hist-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.hist-action-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.hist-action-btn:hover:not(:disabled) svg {
+  opacity: 1;
+}

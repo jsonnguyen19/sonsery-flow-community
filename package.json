@@ -1,0 +1,55 @@
+{
+  "name": "sonsery-flow",
+  "version": "0.7.0",
+  "private": true,
+  "description": "AI workflow automation: bridge AI chat with the terminal",
+  "scripts": {
+    "setup": "python3 scripts/setup.py",
+    "setup:dev": "bash scripts/setup-dev.sh",
+    "about": "python3 scripts/about.py",
+    "sync:prompts": "python3 sync-prompts.py",
+    "lint": ".venv-test/bin/ruff check .",
+    "lint:fix": ".venv-test/bin/ruff check . --fix",
+    "lint:js": "eslint runctx-extension",
+    "lint:js:fix": "eslint runctx-extension --fix",
+    "format": ".venv-test/bin/ruff format .",
+    "format:check": ".venv-test/bin/ruff format . --check",
+    "format:js": "prettier --write \"runctx-extension/**/*.{js,css,html}\"",
+    "format:js:check": "prettier --check \"runctx-extension/**/*.{js,css,html}\"",
+    "typecheck": ".venv-test/bin/basedpyright",
+    "test": ".venv-test/bin/python -m pytest",
+    "test:watch": ".venv-test/bin/python -m pytest -f",
+    "test:js": "vitest run",
+    "test:js:watch": "vitest",
+    "check": "pnpm lint && pnpm lint:js && pnpm format:check && pnpm format:js:check && pnpm typecheck && pnpm test",
+    "check:py": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test",
+    "check:js": "pnpm lint:js && pnpm format:js:check",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "runctx-extension/**/*.{js,css,html}": [
+      "eslint",
+      "prettier --write"
+    ],
+    "**/*.py": [
+      ".venv-test/bin/ruff check --fix",
+      ".venv-test/bin/ruff format"
+    ],
+    "**/*.md": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.6",
+    "vitest": "^2.1.8"
+  }
+}

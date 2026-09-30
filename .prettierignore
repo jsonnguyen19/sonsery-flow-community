@@ -1,0 +1,14 @@
+node_modules/
+.venv/
+.venv-test/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+htmlcov/
+runctx-extension/popup/prompts.js
+landing/**/*.html
+pnpm-lock.yaml
+*.min.js
+*.md

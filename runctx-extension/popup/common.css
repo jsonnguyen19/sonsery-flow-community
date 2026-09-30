@@ -1,0 +1,201 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.label {
+  display: grid;
+  gap: 2px;
+}
+
+.label strong {
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.label span {
+  color: var(--text-mute);
+  font-size: var(--fs-xs);
+}
+
+#statusEl.warn {
+  color: var(--warning);
+}
+
+.section-header {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  margin-bottom: var(--sp-2);
+  font-weight: 600;
+}
+
+.section-divider {
+  border-top: 1px solid var(--border);
+  padding-top: var(--sp-4);
+}
+
+/* Switch (iOS style) */
+.switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: var(--r-full);
+  background: var(--border-strong);
+  transition: background 160ms ease;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--shadow-1);
+  transition: transform 160ms ease;
+}
+
+input:checked + .slider {
+  background: var(--accent);
+}
+
+input:checked + .slider::before {
+  transform: translateX(16px);
+}
+
+/* Select elements */
+select {
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+select:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-3);
+}
+
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Text inputs */
+input[type="text"] {
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* ============================================================
+   PAYLOAD ID QUEUE — View & Reset block
+   Keep the whole section right-aligned so the IDs list and the
+   search bar render on the right edge instead of collapsing to
+   the left side of the settings panel.
+   ============================================================ */
+.payload-queue-section .row {
+  align-items: flex-start;
+}
+
+.payload-queue-section .payload-queue-search {
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+}
+
+.payload-queue-section .payload-queue-search #payloadIdSearchInput {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.payload-queue-section .payload-queue-search #searchPayloadIdBtn {
+  flex: 0 0 auto;
+}
+
+.payload-queue-section .payload-ids-list {
+  margin-left: auto;
+  max-width: 100%;
+  text-align: left;
+}
+
+.payload-queue-section .payload-ids-list pre,
+.payload-queue-section .payload-ids-list > div,
+.payload-queue-section .payload-ids-list > span {
+  margin-left: auto;
+  text-align: left;
+}
+
+@media (max-width: 449px) {
+  .payload-queue-section .row {
+    flex-wrap: wrap;
+  }
+
+  .payload-queue-section .row > .label {
+    flex: 1 1 100%;
+  }
+
+  .payload-queue-section .speed-row-controls {
+    flex: 1 1 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .payload-queue-section .payload-ids-list {
+    margin-left: 0;
+  }
+}
+
+/* Project tab output */
+.proj-output {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--fs-xs);
+  color: var(--text);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-2);
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
