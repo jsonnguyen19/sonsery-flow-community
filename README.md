@@ -18,37 +18,145 @@ A tool that automates the workflow between AI Chat (ChatGPT, Claude, Gemini, Dee
 2. `watchctx` automatically detects it and executes the command
 3. The result is copied back to the clipboard to paste into AI Chat
 
-## Setup (end-user)
+## Quick start
+
+> **Using the tool?** You only need the two steps below. Ignore anything about
+> `pnpm setup:dev` — that is for contributors.
 
 ```bash
 python3 scripts/setup.py
+
+# 2. Run
+./run             # clipboard watcher + HTTP bridge
+./sync            # sync prompts into the extension
 ```
 
-The script will create `venv/`, install runtime deps, and create the `run` / `sync` wrappers at the project root. Then:
+That's it for the backend. Next, install the Chrome extension.
+
+## Chrome extension
+
+The extension lives in `runctx-extension/`. To find its exact path (and get it in
+a form Windows/WSL can paste directly), run:
 
 ```bash
-./run             # Run watchctx (clipboard watcher + HTTP bridge)
-./sync            # Sync prompts into the extension
+pnpm about                     # or: python3 scripts/about.py
+./run --about                  # or ./run -a
 ```
 
-### Aliases (optional — user configures themselves)
+This prints the extension path, HTTP bridge ports, and available commands.
 
-Setup does **NOT** write aliases into the rc file automatically. You add the
-alias/function to your shell config yourself if you want to type `watchctx` from
-any directory.
+### Fields worth knowing
+
+| Field | Why it matters |
+|---|---|
+| `Extension path` (WSL UNC) | **The key one.** On WSL, `about` prints the Windows UNC form — `\\wsl.localhost\<Distro>\home\...\runctx-extension`. Copy this **straight into the Explorer address bar** and hit Enter, then use it as the folder for `Load unpacked`. No manual path translation needed. |
+| `Extension path` (Linux) | The raw POSIX path, kept for reference. Ignore it on Windows — use the UNC path above. |
+| `HTTP bridge ports` | The port range the clipboard watcher + bridge listen on. Useful when debugging or when a port is already taken. |
+| `Project root` / `Platform` / `Python` | Environment info — the first thing to include in a bug report. |
+
+**Example output (WSL):**
+
+```
+============================================================
+  sonsery-flow  v0.7.0
+============================================================
+  Description  : AI workflow automation: bridge AI chat with the terminal
+  Project root : /home/sonnguyen/projects/sonsery-flow
+  Platform     : Linux 5.15.90.1-microsoft-standard-WSL2
+  Python       : 3.11.6
+
+============================================================
+  CHROME EXTENSION
+============================================================
+  Path (copy into Explorer / Load unpacked):
+    \\wsl.localhost\Ubuntu\home\sonnguyen\projects\sonsery-flow\runctx-extension
+
+  Linux path (for reference):
+    /home/sonnguyen/projects/sonsery-flow/runctx-extension
+
+============================================================
+  HTTP BRIDGE
+============================================================
+  Ports        : 8765-8770 (6 ports)
+...
+```
+
+On Linux / macOS (no WSL), the UNC line is omitted and you get the plain path.
+
+### Install the extension
+
+1. Run `pnpm about` and copy the **WSL UNC path** (Windows) or the plain path
+   (Linux/macOS).
+2. Open `chrome://extensions/` and enable **Developer mode**.
+3. Click **Load unpacked** → paste the path
+   (on WSL, paste into the Explorer address bar and press Enter first) → select.
+4. Shortcut: `Ctrl+Shift+Space`.
+
+### Optional: keep Chrome running in the background (recommended)
+
+By default Chrome throttles timers, freezes tabs, and sleeps background windows —
+this can pause the automation loop when the AI tab is not focused. Launch Chrome
+with the flags below so the loop keeps running even when you minimize or switch
+away.
+
+| Flag | Purpose |
+|---|---|
+| `--user-data-dir="..."` | Use a separate profile so it doesn't conflict with your main Chrome |
+| `--disable-background-timer-throttling` | Don't slow down timers in background tabs |
+| `--disable-backgrounding-occluded-windows` | Don't deprioritize covered/occluded windows |
+| `--disable-renderer-backgrounding` | Don't lower renderer priority in the background |
+| `--intensive-wake-up-throttling-policy=disabled` | Disable the aggressive wake-up throttling policy |
+
+**Windows (PowerShell)** — create a dedicated shortcut:
+
+```powershell
+$WshShell = New-Object -ComObject WScript.Shell
+$ShortcutPath = "$([Environment]::GetFolderPath('Desktop'))\Chrome Agent.lnk"
+$Shortcut = $WshShell.CreateShortcut($ShortcutPath)
+
+$Shortcut.TargetPath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+$Shortcut.Arguments = '--user-data-dir="%LOCALAPPDATA%\Google\Chrome\User Data Agent" --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --intensive-wake-up-throttling-policy=disabled'
+
+$Shortcut.Save()
+```
+
+**macOS** — launch from Terminal:
+
+```bash
+open -na "Google Chrome" --args \
+  --user-data-dir="$HOME/Library/Application Support/Google/Chrome Agent" \
+  --disable-background-timer-throttling \
+  --disable-backgrounding-occluded-windows \
+  --disable-renderer-backgrounding \
+  --intensive-wake-up-throttling-policy=disabled
+```
+
+**Linux** — save as `~/.local/share/applications/chrome-agent.desktop`:
+
+```ini
+[Desktop Entry]
+Name=Chrome Agent
+Exec=/usr/bin/google-chrome --user-data-dir=%h/.config/google-chrome-agent --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --intensive-wake-up-throttling-policy=disabled
+Type=Application
+Terminal=false
+```
+
+> **Note:** For Edge, replace the executable path (`chrome.exe` → `msedge.exe`,
+> `Google Chrome` → `Microsoft Edge`) — the flag names are identical.
+
+> **Tip:** A separate `--user-data-dir` keeps the agent profile isolated from your
+> daily browser, so extension reloads and AI-site login state stay separate.
+
+## Aliases (optional)
+
+Setup does **NOT** write aliases automatically. Add these yourself if you want to
+type `watchctx` from any directory.
 
 **Linux/macOS/WSL (bash/zsh)** — add to `~/.bashrc` or `~/.zshrc`:
 
 ```bash
 alias watchctx='/path/to/sonsery-flow/run'
 alias watchctx-sync='/path/to/sonsery-flow/sync'
-```
-
-Or as a function (more flexible, no hard-coded wrapper):
-
-```bash
-watchctx()      { python3 '/path/to/sonsery-flow/watchctx.py' "$@"; }
-watchctx-sync() { python3 '/path/to/sonsery-flow/sync-prompts.py' "$@"; }
 ```
 
 **Windows (PowerShell)** — add to `$PROFILE`:
@@ -61,120 +169,10 @@ function watchctx-sync { & "C:\path\to\sonsery-flow\sync.bat" @args }
 > After adding the alias, **open a new terminal** (or `source ~/.zshrc` /
 > `. ~/.bashrc`) to reload the config.
 
-## Tool info
+## Requirements
 
-```bash
-pnpm about                     # or: python3 scripts/about.py
-```
-
-Prints version, project root, extension path for Load unpacked, HTTP
-bridge ports, and a list of available commands.
-
-## Setup (dev)
-
-```bash
-pnpm install       # Install dev deps (husky pre-commit hook auto-installs via "prepare")
-pnpm setup:dev     # Create .venv-test/, install requirements-dev.txt
-pnpm check         # lint + format check + typecheck + test
-```
-
-End-users only need `pnpm setup` (or `python3 scripts/setup.py`) as in the section
-above. The pre-commit hook (husky + lint-staged) automatically runs ESLint + Prettier for JS/CSS/HTML files
-under `runctx-extension/`, and ruff check + format for staged `.py` files.
-
-See [`scripts/README.md`](scripts/README.md) for details.
-
-## Usage
-
-```bash
-./run             # Run clipboard watcher + HTTP bridge
-./sync            # Sync prompts into the extension
-```
-
-## Chrome Extension
-
-Install the extension from the `runctx-extension/` folder:
-- Open `chrome://extensions/`
-- Enable Developer mode
-- Load unpacked → select `runctx-extension/`
-- Shortcut: `Ctrl+Shift+Space`
-
-### Bonus: keep Chrome running in the background (recommended)
-
-By default Chrome throttles timers, freezes tabs, and sleeps background windows —
-this can pause the automation loop when the AI tab is not focused. Launch Chrome
-with the flags below so the loop keeps running even when you minimize or switch
-away.
-
-**Flags used (all Chrome/Edge-compatible):**
-
-| Flag | Purpose |
-|---|---|
-| `--user-data-dir="..."` | Use a separate profile so it doesn't conflict with your main Chrome |
-| `--disable-background-timer-throttling` | Don't slow down timers in background tabs |
-| `--disable-backgrounding-occluded-windows` | Don't deprioritize covered/occluded windows |
-| `--disable-renderer-backgrounding` | Don't lower renderer priority in the background |
-| `--intensive-wake-up-throttling-policy=disabled` | Disable the aggressive wake-up throttling policy |
-
-#### Windows (PowerShell) — create a dedicated shortcut
-
-Run in PowerShell (adjust `$ShortcutPath` to wherever you want the shortcut):
-
-```powershell
-$WshShell = New-Object -ComObject WScript.Shell
-$ShortcutPath = "$([Environment]::GetFolderPath('Desktop'))\Chrome Agent.lnk"
-$Shortcut = $WshShell.CreateShortcut($ShortcutPath)
-
-# Flags to stop Chrome from freezing / sleeping background tabs
-$Shortcut.TargetPath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-$Shortcut.Arguments = '--user-data-dir="%LOCALAPPDATA%\Google\Chrome\User Data Agent" --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --intensive-wake-up-throttling-policy=disabled'
-
-$Shortcut.Save()
-Write-Host "Chrome Agent shortcut created successfully!" -ForegroundColor Green
-```
-
-Then launch Chrome from the shortcut and load the extension in that profile.
-
-#### macOS — launch from Terminal (or wrap in an app/alias)
-
-```bash
-open -na "Google Chrome" --args \
-  --user-data-dir="$HOME/Library/Application Support/Google/Chrome Agent" \
-  --disable-background-timer-throttling \
-  --disable-backgrounding-occluded-windows \
-  --disable-renderer-backgrounding \
-  --intensive-wake-up-throttling-policy=disabled
-```
-
-#### Linux — create a `.desktop` launcher
-
-Save as `~/.local/share/applications/chrome-agent.desktop`:
-
-```ini
-[Desktop Entry]
-Name=Chrome Agent
-Exec=/usr/bin/google-chrome --user-data-dir=%h/.config/google-chrome-agent --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-renderer-backgrounding --intensive-wake-up-throttling-policy=disabled
-Type=Application
-Terminal=false
-```
-
-> **Note:** These flags apply to Chrome. For Edge, replace the executable path
-> (`chrome.exe` → `msedge.exe`, `Google Chrome` → `Microsoft Edge`, etc.) — the
-> flag names are identical.
-
-> **Tip:** Using a separate `--user-data-dir` keeps your agent profile isolated
-> from your daily browser, so extension reloads and login state for the AI sites
-> stay separate.
-
-## Structure
-
-- `watchctx.py` — entrypoint (facade): clipboard watcher + HTTP bridge
-- `runctx_core.py` — entrypoint (facade): payload processing
-- `runctx/` — main package
-- `runctx-extension/` — Chrome extension
-- `scripts/` — setup scripts (see `scripts/README.md`)
-- `prompts/` — prompt templates
-- `tests/python/` — pytest test suite
+- Python 3.8+
+- Chrome/Edge
 
 ## Links
 
@@ -185,7 +183,19 @@ Terminal=false
 - **Contact** — hongsonit10@gmail.com
 - **Discord** — coming soon
 
-## Requirements
+## Contributing
 
-- Python 3.8+
-- Chrome/Edge
+Contributor / dev setup (dev venv, lint, format, typecheck, tests) lives in
+[`docs/dev-setup.md`](docs/dev-setup.md). End-users never need it.
+
+Repo layout:
+
+- `watchctx.py` — entrypoint: clipboard watcher + HTTP bridge
+- `runctx_core.py` — entrypoint: payload processing
+- `runctx/` — main package
+- `runctx-extension/` — Chrome extension
+- `scripts/` — setup scripts (see [`scripts/README.md`](scripts/README.md))
+- `prompts/` — prompt templates
+- `tests/python/` — pytest test suite
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide.
