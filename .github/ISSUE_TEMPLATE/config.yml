@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or usage help
+    url: https://github.com/jsonnguyen19/sonsery-flow-community/discussions
+    about: Ask questions and get help from the community (please do not open an issue for support).
+  - name: Security vulnerability
+    url: https://github.com/jsonnguyen19/sonsery-flow-community/security/advisories/new
+    about: Report a security issue privately (do NOT open a public issue).
+  - name: Website & docs
+    url: https://flow.sonsery.online/
+    about: Landing page, setup guide, and feature overview for Sonsery Flow.

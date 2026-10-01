@@ -54,7 +54,7 @@ line-ending = "lf"
 # BasedPyright - Type checker (stricter than pyright)
 # ============================================================
 [tool.basedpyright]
-include = ["runctx_core.py", "watchctx.py", "runctx", "mobile", "tests/python"]
+include = ["runctx_core.py", "watchctx.py", "runctx", "tests/python"]
 exclude = [
     ".venv-test",
     "venv",

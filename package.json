@@ -1,8 +1,37 @@
 {
   "name": "sonsery-flow",
   "version": "0.7.0",
-  "private": true,
-  "description": "AI workflow automation: bridge AI chat with the terminal",
+  "description": "AI workflow automation: bridge AI chat (ChatGPT, Claude, Gemini, DeepSeek) with the terminal. Community edition (MIT, open source).",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "ai-agent",
+    "automation",
+    "chatgpt",
+    "claude",
+    "deepseek",
+    "gemini",
+    "clipboard",
+    "workflow",
+    "developer-tools",
+    "chrome-extension",
+    "terminal",
+    "no-api-key",
+    "cursor-alternative"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsonnguyen19/sonsery-flow-community.git"
+  },
+  "homepage": "https://flow.sonsery.online/",
+  "bugs": {
+    "url": "https://github.com/jsonnguyen19/sonsery-flow-community/issues"
+  },
+  "author": {
+    "name": "Son Nguyen",
+    "email": "hongsonit10@gmail.com",
+    "url": "https://jasonnguyen.website/"
+  },
   "scripts": {
     "setup": "python3 scripts/setup.py",
     "setup:dev": "bash scripts/setup-dev.sh",

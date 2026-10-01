@@ -1,0 +1,117 @@
+name: Bug report
+description: Something is broken — help us reproduce and fix it
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report! Please fill in the
+        sections below. The more detail you give, the faster we can help.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checks
+      description: Please confirm the following before submitting.
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I am running the latest `main` (or the latest release).
+          required: true
+        - label: This is a bug in the Community edition (not the Pro edition).
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: When I paste a payload with..., the watcher...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps. Include the exact payload or command if relevant.
+      placeholder: |
+        1. Run `./run`
+        2. Open ChatGPT and paste...
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      options:
+        - Extension (popup / side panel)
+        - Content script (payload/result watcher)
+        - Python backend (runctx)
+        - Clipboard watcher (watchctx)
+        - Adapter (ChatGPT / Claude / Gemini / DeepSeek / fallback)
+        - Setup / scripts
+        - Docs
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `pnpm about` or the version in package.json.
+      placeholder: "0.7.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: "Windows 11 / macOS 14 / Ubuntu 22.04 / WSL2"
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.11.6"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser version
+      placeholder: "Chrome 129 / Edge 129"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: |
+        Paste logs, stack traces, or a screenshot. **Redact secrets and
+        personal paths** before posting.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+    validations:
+      required: false

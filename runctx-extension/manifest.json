@@ -3,6 +3,7 @@
   "name": "Sonsery Flow Community",
   "version": "0.7.0",
   "description": "AI workflow automation (community edition) — bridge AI chat to your terminal across ChatGPT, Claude, Gemini, DeepSeek. Zero API keys.",
+  "homepage_url": "https://github.com/jsonnguyen19/sonsery-flow-community",
   "icons": {
     "48": "icons/48.png"
   },

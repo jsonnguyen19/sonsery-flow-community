@@ -1,5 +1,15 @@
 # Sonsery Flow Community - AI Workflow Automation
 
+[![CI](https://github.com/jsonnguyen19/sonsery-flow-community/actions/workflows/ci.yml/badge.svg)](https://github.com/jsonnguyen19/sonsery-flow-community/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
+
+> **Sonsery Flow** — use free web AI (ChatGPT, Claude, Gemini, DeepSeek, and more)
+> as a coding agent, right inside your terminal. No API keys, no subscriptions,
+> no token quotas. Copy a payload in the AI chat → the tool runs it on your
+> machine → the result is pasted back. Automation loop, end to end.
+
 A tool that automates the workflow between AI Chat (ChatGPT, Claude, Gemini, DeepSeek) and the terminal. Community edition — MIT, open source.
 
 ## How it works
@@ -14,7 +24,7 @@ A tool that automates the workflow between AI Chat (ChatGPT, Claude, Gemini, Dee
 python3 scripts/setup.py
 ```
 
-at the project root. Then:
+The script will create `venv/`, install runtime deps, and create the `run` / `sync` wrappers at the project root. Then:
 
 ```bash
 ./run             # Run watchctx (clipboard watcher + HTTP bridge)
@@ -47,9 +57,6 @@ watchctx-sync() { python3 '/path/to/sonsery-flow/sync-prompts.py' "$@"; }
 function watchctx      { & "C:\path\to\sonsery-flow\run.bat" @args }
 function watchctx-sync { & "C:\path\to\sonsery-flow\sync.bat" @args }
 ```
-
-`profile.ps1.example`, `config.fish.example`, `cmdrc.example.bat`).
-
 
 > After adding the alias, **open a new terminal** (or `source ~/.zshrc` /
 > `. ~/.bashrc`) to reload the config.
@@ -168,6 +175,15 @@ Terminal=false
 - `scripts/` — setup scripts (see `scripts/README.md`)
 - `prompts/` — prompt templates
 - `tests/python/` — pytest test suite
+
+## Links
+
+- **Website / Landing page** — <https://flow.sonsery.online/>
+- **Community repo** — <https://github.com/jsonnguyen19/sonsery-flow-community>
+- **Author portfolio** — <https://jasonnguyen.website/>
+- **LinkedIn** — <https://www.linkedin.com/in/son-nguyen-650628344/>
+- **Contact** — hongsonit10@gmail.com
+- **Discord** — coming soon
 
 ## Requirements
 

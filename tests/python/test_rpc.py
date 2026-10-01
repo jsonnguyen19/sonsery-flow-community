@@ -91,10 +91,10 @@ def test_valid_request_echoes_id():
 
 
 def test_rpc_tools_excludes_dangerous_tools():
-    # write is opened up for edit-in-tree; shell/replace remain blocked over RPC.
+    # Community RPC exposes read + settings/history tools only.
     assert "shell" not in watchctx.RPC_TOOLS
     assert "replace" not in watchctx.RPC_TOOLS
-    assert "write" in watchctx.RPC_TOOLS
+    assert "write" not in watchctx.RPC_TOOLS
 
 
 def test_http_rpc_valid(rpc_server):
