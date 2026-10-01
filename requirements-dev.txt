@@ -7,7 +7,7 @@ requests>=2.28.0
 
 
 # Lint + format
-ruff>=0.16.0
+ruff>=0.16.9
 
 # Type checker
 basedpyright>=1.40.0
