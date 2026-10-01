@@ -56,7 +56,7 @@ function _setupTabsOverflow() {
     const fitFor = (capacity, reserveOverflow) => {
       // Each tab costs TAB_MIN_WIDTH + gap; N tabs cost N*(w+gap) - gap.
       const slot = TAB_MIN_WIDTH + gap;
-      let budget = innerWidth - (reserveOverflow ? OVERFLOW_BTN_WIDTH + gap : 0);
+      const budget = innerWidth - (reserveOverflow ? OVERFLOW_BTN_WIDTH + gap : 0);
       if (budget < TAB_MIN_WIDTH) return 0;
       const n = Math.floor((budget + gap) / slot);
       return Math.min(n, capacity);
