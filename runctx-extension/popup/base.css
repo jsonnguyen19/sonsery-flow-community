@@ -28,9 +28,8 @@
 
   /* ===== Responsive breakpoint =====
      Retained as a shared token for future narrow-layout work. The tab bar
-     no longer keys off this value: overflow is driven by the
-     data-overflow="true" marker on individual tabs (see popup/tabs.js and
-     popup/tabs.css). */
+     no longer keys off this value: overflow is computed in popup/tabs.js
+     (MAX_VISIBLE_TABS) and applied via the .tabs--collapsed class. */
   --bp-narrow: 450px;
 }
 

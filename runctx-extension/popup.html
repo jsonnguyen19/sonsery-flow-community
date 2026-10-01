@@ -24,9 +24,8 @@
       </section>
 
       <!-- Tabs -->
-      <!-- Always-visible tabs keep the bar readable; secondary tabs
-           (marked data-overflow="true") live in the ⋯ menu. Add the
-           marker to any new tab that should be hidden by default. -->
+      <!-- Tabs beyond the first MAX_VISIBLE are collapsed into the ⋯ menu
+           automatically (see tabs.js). No static marker needed here. -->
       <div class="tabs" id="tabsBar">
         <button class="tab-btn active" data-tab="flow" title="Flow" aria-label="Flow">
           <svg
@@ -48,13 +47,7 @@
             <path d="M17.5 7.5 13 16"></path>
           </svg>
         </button>
-        <button
-          class="tab-btn"
-          data-tab="stats"
-          data-overflow="true"
-          title="Stats"
-          aria-label="Stats"
-        >
+        <button class="tab-btn" data-tab="stats" title="Stats" aria-label="Stats">
           <svg
             class="tab-icon"
             width="16"
@@ -72,13 +65,7 @@
             <line x1="6" y1="20" x2="6" y2="14"></line>
           </svg>
         </button>
-        <button
-          class="tab-btn"
-          data-tab="history"
-          data-overflow="true"
-          title="History"
-          aria-label="History"
-        >
+        <button class="tab-btn" data-tab="history" title="History" aria-label="History">
           <svg
             class="tab-icon"
             width="16"

@@ -141,26 +141,16 @@
   background: var(--accent);
 }
 
-/* Collapsed mode (toggled in JS whenever any tab has data-overflow="true"):
-   hide flagged tabs from the bar and route them through the ⋯ menu. */
-/* Only collapse the direct tab-bar buttons; menu items (deeper descendants)
-   must stay visible. */
+/* Collapsed mode (toggled in JS when tab count > MAX_VISIBLE_TABS):
+   hide flagged tabs from the bar and route them through the ⋯ menu.
+   The data-overflow marker is set/removed dynamically by popup/tabs.js.
+   Only the direct tab-bar buttons are collapsed; menu items (deeper
+   descendants) must stay visible. */
 .tabs.tabs--collapsed > .tab-btn[data-overflow="true"] {
   display: none;
 }
 
 .tabs.tabs--collapsed .tabs-overflow {
-  display: block;
-}
-
-/* CSS-only fallback: same rule, applied unconditionally so the layout is
-   correct even before tabs.js runs (or if it fails to load). Any tab marked
-   data-overflow="true" is hidden from the bar and reachable via the ⋯ menu. */
-.tabs > .tab-btn[data-overflow="true"] {
-  display: none;
-}
-
-.tabs .tabs-overflow {
   display: block;
 }
 

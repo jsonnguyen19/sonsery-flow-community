@@ -4,8 +4,14 @@
 
 let _tabsOverflowSetup = false;
 
-// Build the ⋯ overflow menu from tabs flagged with data-overflow="true",
-// and keep the menu's active state in sync with the visible tab bar.
+// Maximum number of tabs shown directly in the bar. Any tab beyond this
+// limit is routed through the ⋯ overflow menu. The active tab is always
+// kept visible on the bar (swapped with the last visible slot if needed).
+const MAX_VISIBLE_TABS = 4;
+
+// Compute overflow state from the DOM. Only the first MAX_VISIBLE_TABS tabs
+// stay on the bar; the rest (excluding the active one, which is always
+// promoted to the bar) are moved into the ⋯ menu. No static marker needed.
 function _setupTabsOverflow() {
   if (_tabsOverflowSetup) return;
   const overflow = document.getElementById("tabsOverflow");
@@ -20,15 +26,51 @@ function _setupTabsOverflow() {
     overflowBtn.setAttribute("aria-expanded", "false");
   };
 
-  // Tabs are flagged directly in the DOM (data-overflow="true") so the
-  // decision no longer depends on window width. Add the marker to any new
-  // tab that should live inside the ⋯ menu instead of the bar.
-  const getHiddenTabs = () =>
-    Array.from(document.querySelectorAll(".tabs > .tab-btn[data-tab][data-overflow='true']"));
+  // All real tab buttons in DOM order (excludes the ⋯ button and menu items).
+  const getAllTabs = () => Array.from(bar.querySelectorAll(":scope > .tab-btn[data-tab]"));
 
-  // Overflow is always on when at least one tab is flagged; the CSS class
-  // still drives visibility so the layout stays declarative.
+  // Tabs whose data-overflow flag is currently set by our own logic.
+  const getHiddenTabs = () => getAllTabs().filter((b) => b.dataset.overflow === "true");
+
+  // Recompute which tabs belong on the bar vs. in the ⋯ menu.
+  // Rule: if total <= MAX_VISIBLE_TABS -> show all, no ⋯ button.
+  //       otherwise keep the first MAX_VISIBLE_TABS, promote the active
+  //       tab into the bar (swapping with the last visible one if needed),
+  //       and flag every remaining tab as overflow.
+  const applyOverflowFlags = () => {
+    const tabs = getAllTabs();
+    const total = tabs.length;
+    const needsOverflow = total > MAX_VISIBLE_TABS;
+
+    if (!needsOverflow) {
+      tabs.forEach((t) => {
+        delete t.dataset.overflow;
+      });
+      return;
+    }
+
+    const active = tabs.find((t) => t.classList.contains("active"));
+    const visible = new Set(tabs.slice(0, MAX_VISIBLE_TABS));
+
+    // Always keep the active tab visible: if it would be pushed into the
+    // menu, swap it with the last visible tab.
+    if (active && !visible.has(active)) {
+      const lastVisible = tabs[MAX_VISIBLE_TABS - 1];
+      visible.delete(lastVisible);
+      visible.add(active);
+    }
+
+    tabs.forEach((t) => {
+      if (visible.has(t)) {
+        delete t.dataset.overflow;
+      } else {
+        t.dataset.overflow = "true";
+      }
+    });
+  };
+
   const updateCollapsed = () => {
+    applyOverflowFlags();
     const hasOverflow = getHiddenTabs().length > 0;
     bar.classList.toggle("tabs--collapsed", hasOverflow);
     if (!hasOverflow) {
@@ -111,19 +153,21 @@ function _setupTabsOverflow() {
     if (e.key === "Escape") closeMenu();
   });
 
-  // Keep the ⋯ button indicator in sync whenever the active tab changes —
-  // including changes triggered from the bar (e.g. user clicks Flow) so the
-  // indicator disappears when no overflow tab is active anymore.
-  const activeObserver = new MutationObserver(syncOverflowIndicator);
-  getHiddenTabs().forEach((src) => {
+  // React to any active-tab change: re-evaluate which tab must stay on the
+  // bar (the active one is always promoted) and refresh the ⋯ indicator.
+  const activeObserver = new MutationObserver(() => {
+    updateCollapsed();
+    syncOverflowIndicator();
+  });
+  getAllTabs().forEach((src) => {
     activeObserver.observe(src, { attributes: true, attributeFilter: ["class"] });
   });
 
-  // Overflow state is purely data-driven now; run once and keep the menu
-  // anchored if the popup is resized while it's open.
+  // Initial layout + keep the menu anchored while open on resize.
   updateCollapsed();
   syncOverflowIndicator();
   window.addEventListener("resize", () => {
+    updateCollapsed();
     if (!menu.hidden) positionMenu();
   });
 }
