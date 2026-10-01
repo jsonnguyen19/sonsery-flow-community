@@ -7,10 +7,16 @@
   border-radius: var(--r-md);
   background: var(--bg-2);
   border: 1px solid var(--border);
+  /* Tabs share the bar evenly but never shrink below the width the JS
+     overflow logic assumes (TAB_MIN_WIDTH = 75px, matching the design
+     target of 300px / 4 tabs). Any tab that no longer fits is moved into
+     the ⋯ overflow menu by tabs.js. */
+  overflow: hidden;
 }
 
 .tab-btn {
-  flex: 1;
+  flex: 1 1 75px;
+  min-width: 75px;
   padding: 6px 8px;
   border: none;
   border-radius: var(--r-sm);
@@ -68,6 +74,9 @@
 
 .tabs-overflow-btn {
   flex: 0 0 auto;
+  /* min-width must be reset: the base .tab-btn rule now enforces 75px,
+     which would make the ⋯ button as wide as a full tab. */
+  min-width: 0;
   padding: 6px 10px;
   font-size: var(--fs-md);
   line-height: 1;

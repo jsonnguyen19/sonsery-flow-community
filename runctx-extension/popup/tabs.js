@@ -4,14 +4,18 @@
 
 let _tabsOverflowSetup = false;
 
-// Maximum number of tabs shown directly in the bar. Any tab beyond this
-// limit is routed through the ⋯ overflow menu. The active tab is always
-// kept visible on the bar (swapped with the last visible slot if needed).
-const MAX_VISIBLE_TABS = 4;
+// Minimum width (px) that a single tab button needs to stay usable.
+// Derived from the design target: 300px bar fits exactly 4 tabs
+// (300 / 4 = 75px per tab). Tabs are equal-width (flex:1), so as the
+// extension is resized we recompute how many fit and route the rest
+// through the ⋯ overflow menu. If every tab fits, the ⋯ button is
+// hidden entirely.
+const TAB_MIN_WIDTH = 75;
 
-// Compute overflow state from the DOM. Only the first MAX_VISIBLE_TABS tabs
-// stay on the bar; the rest (excluding the active one, which is always
-// promoted to the bar) are moved into the ⋯ menu. No static marker needed.
+// Compute overflow state from the DOM. The number of tabs that stay on the
+// bar is derived from the bar's actual pixel width at runtime, not from a
+// fixed constant. Any tab that does not fit (excluding the active one,
+// which is always promoted to the bar) is moved into the ⋯ menu.
 function _setupTabsOverflow() {
   if (_tabsOverflowSetup) return;
   const overflow = document.getElementById("tabsOverflow");
@@ -32,15 +36,52 @@ function _setupTabsOverflow() {
   // Tabs whose data-overflow flag is currently set by our own logic.
   const getHiddenTabs = () => getAllTabs().filter((b) => b.dataset.overflow === "true");
 
+  // Approximate width of the ⋯ button (padding + glyph + borders). Used only
+  // to reserve space when deciding whether overflow is needed.
+  const OVERFLOW_BTN_WIDTH = 34;
+
+  // Compute how many tabs can fit on the bar right now.
+  //   - available width = bar inner width minus padding, minus the space the
+  //     ⋯ button will occupy if overflow turns out to be needed.
+  //   - each tab needs at least TAB_MIN_WIDTH.
+  //   - We iterate: assume no overflow first; if not all tabs fit, reserve
+  //     room for the ⋯ button and recompute.
+  const computeVisibleCount = (total) => {
+    const style = getComputedStyle(bar);
+    const padX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    const gap = parseFloat(style.columnGap || style.gap) || 0;
+    const innerWidth = bar.clientWidth - padX;
+    if (innerWidth <= 0) return total;
+
+    const fitFor = (capacity, reserveOverflow) => {
+      // Each tab costs TAB_MIN_WIDTH + gap; N tabs cost N*(w+gap) - gap.
+      const slot = TAB_MIN_WIDTH + gap;
+      let budget = innerWidth - (reserveOverflow ? OVERFLOW_BTN_WIDTH + gap : 0);
+      if (budget < TAB_MIN_WIDTH) return 0;
+      const n = Math.floor((budget + gap) / slot);
+      return Math.min(n, capacity);
+    };
+
+    // Try without the ⋯ button first.
+    const fitAll = fitFor(total, false);
+    if (fitAll >= total) return total;
+
+    // Need overflow: reserve room for the ⋯ button.
+    return fitFor(total, true);
+  };
+
   // Recompute which tabs belong on the bar vs. in the ⋯ menu.
-  // Rule: if total <= MAX_VISIBLE_TABS -> show all, no ⋯ button.
-  //       otherwise keep the first MAX_VISIBLE_TABS, promote the active
-  //       tab into the bar (swapping with the last visible one if needed),
-  //       and flag every remaining tab as overflow.
+  // Rule: if every tab fits -> show all, no ⋯ button.
+  //       otherwise keep as many as fit, promote the active tab into the
+  //       bar (swapping with the last visible one if needed), and flag every
+  //       remaining tab as overflow.
   const applyOverflowFlags = () => {
     const tabs = getAllTabs();
     const total = tabs.length;
-    const needsOverflow = total > MAX_VISIBLE_TABS;
+    if (total === 0) return;
+
+    const visibleCount = computeVisibleCount(total);
+    const needsOverflow = visibleCount < total;
 
     if (!needsOverflow) {
       tabs.forEach((t) => {
@@ -50,12 +91,12 @@ function _setupTabsOverflow() {
     }
 
     const active = tabs.find((t) => t.classList.contains("active"));
-    const visible = new Set(tabs.slice(0, MAX_VISIBLE_TABS));
+    const visible = new Set(tabs.slice(0, visibleCount));
 
     // Always keep the active tab visible: if it would be pushed into the
     // menu, swap it with the last visible tab.
-    if (active && !visible.has(active)) {
-      const lastVisible = tabs[MAX_VISIBLE_TABS - 1];
+    if (active && !visible.has(active) && visibleCount > 0) {
+      const lastVisible = tabs[visibleCount - 1];
       visible.delete(lastVisible);
       visible.add(active);
     }
@@ -166,10 +207,23 @@ function _setupTabsOverflow() {
   // Initial layout + keep the menu anchored while open on resize.
   updateCollapsed();
   syncOverflowIndicator();
+
+  // Recompute on window resize.
   window.addEventListener("resize", () => {
     updateCollapsed();
     if (!menu.hidden) positionMenu();
   });
+
+  // Also recompute when the bar itself changes size (e.g. popup layout shifts,
+  // scrollbar appears/disappears) — window resize alone is not enough because
+  // the tab bar can change width without the viewport changing.
+  if (typeof ResizeObserver !== "undefined") {
+    const ro = new ResizeObserver(() => {
+      updateCollapsed();
+      if (!menu.hidden) positionMenu();
+    });
+    ro.observe(bar);
+  }
 }
 
 function setupTabs() {
