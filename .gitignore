@@ -73,6 +73,7 @@ pythonenv*
 !requirements-dev.txt
 !landing/robots.txt
 !prompts/*.txt
+!scripts/split/assets/*.txt
 !*.md
 *.log
 *.out
