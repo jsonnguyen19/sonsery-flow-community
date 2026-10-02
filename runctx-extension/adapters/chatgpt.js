@@ -1,6 +1,11 @@
 window.__RUNCTX__ = window.__RUNCTX__ || {};
 window.__RUNCTX__.AppAdapters = window.__RUNCTX__.AppAdapters || {};
 
+// ============================================================
+// CHATGPT ADAPTER
+// ============================================================
+// Composer: ProseMirror `div.ProseMirror#prompt-textarea[contenteditable="true"]`.
+
 window.__RUNCTX__.AppAdapters.chatgpt = {
   matches: () => location.hostname.includes("chatgpt.com"),
 
