@@ -33,3 +33,5 @@ window.__RUNCTX__.AppAdapters.chatgpt = {
       .find((el) => el && !el.disabled && el.getAttribute("aria-disabled") !== "true");
   },
 };
+
+// Merge the Pro @mention capabilities into the adapter (stripped in Community).
