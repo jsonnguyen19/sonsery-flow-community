@@ -20,22 +20,26 @@ function isEnabledButton(el) {
   );
 }
 
+// ============================================================
+// CLAUDE ADAPTER
+// ============================================================
+// Composer detection + busy/send helpers. Anything appended at the bottom of
+// this file must live inside marker comments, and nothing outside those
+// markers may reference identifiers defined inside them.
+
 window.__RUNCTX__.AppAdapters.claude = {
   matches: () => location.hostname.includes("claude.ai"),
 
   getChatInput: () => {
+    // Generic fallback selector list. It may be overridden at the bottom of
+    // this file (via Object.assign) with a ProseMirror-anchored selector.
     const selectors = [
+      'div.ProseMirror[contenteditable="true"]',
       'div[contenteditable="true"][enterkeyhint]',
       'div[contenteditable="true"][role="textbox"]',
-      'div[contenteditable="true"][aria-label*="Message"]',
-      'div[contenteditable="true"][aria-label*="Talk"]',
-      'div.ProseMirror[contenteditable="true"]',
-      '[data-testid="chat-input"] div[contenteditable="true"]',
-      '[data-testid="composer"] div[contenteditable="true"]',
       "textarea",
       '[contenteditable="true"]',
     ];
-
     return selectors
       .map((selector) => Array.from(document.querySelectorAll(selector)).find(isVisible))
       .find(Boolean);
