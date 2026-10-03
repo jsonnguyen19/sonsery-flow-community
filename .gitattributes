@@ -1,2 +1,7 @@
+# Normalize all text files to LF on every OS (ruff format uses line-ending = "lf",
+# so Windows runners with autocrlf would otherwise fail `ruff format --check`)
+* text=auto eol=lf
+*.py text eol=lf
 # Windows batch files must keep CRLF line endings, otherwise cmd.exe can misparse them
 *.bat text eol=crlf
+*.cmd text eol=crlf

@@ -6,8 +6,10 @@ pyyaml>=6.0
 requests>=2.28.0
 
 
-# Lint + format
-ruff>=0.16.0
+# Lint + format (PINNED: ruff >= 0.17 starts formatting python fences
+# inside .md files, which drifts from what CI/local expect. Keep all
+# OSes on the same version to avoid matrix-only failures.)
+ruff==0.16.9
 
 # Type checker
 basedpyright>=1.40.0

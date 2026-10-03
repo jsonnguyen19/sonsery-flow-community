@@ -15,6 +15,16 @@ readme = "README.md"
 [tool.ruff]
 line-length = 100
 target-version = "py38"
+# Only format/lint Python sources. Excluding docs/** prevents ruff from
+# rewriting Python code fences inside .md files, which behaves differently
+# across ruff builds and caused CI-only failures on Windows.
+extend-exclude = [
+    "docs",
+    ".venv-test",
+    "venv",
+    "__pycache__",
+    "runctx-extension",
+]
 
 [tool.ruff.lint]
 # Rule sets: E/W (pycodestyle), F (pyflakes), I (isort),
