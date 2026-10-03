@@ -76,7 +76,7 @@ function setupPinButton() {
     } else {
       // Pin to this tab
       await chrome.storage.local.set({ pinnedTabId: tab.id });
-      toastInTab("📌 Pinned to this tab!", "success");
+      toastInTab("Pinned to this tab!", "success");
     }
     renderPinBtn();
   });

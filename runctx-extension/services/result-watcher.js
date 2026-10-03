@@ -69,7 +69,7 @@ window.__RUNCTX__.ResultWatcher = {
       // Check for old format
       if (!trimmed.startsWith("RUNCTX_RESULT")) {
         if (await window.__RUNCTX__.shouldShowToasts()) {
-          window.__RUNCTX__.showToast("⚠️ Invalid result format", "warn");
+          window.__RUNCTX__.showToast("Invalid result format", "warn");
         }
         return;
       }
@@ -83,7 +83,7 @@ window.__RUNCTX__.ResultWatcher = {
     if (!state.enabled) {
       if (await window.__RUNCTX__.shouldShowToasts()) {
         window.__RUNCTX__.hideStickyToast("runctx-progress");
-        window.__RUNCTX__.showToast("📥 Result received", "success");
+        window.__RUNCTX__.showToast("Result received", "success");
       }
       window.__RUNCTX__.playResultSound();
       // Consume result in manual mode to prevent repeated detection
@@ -136,7 +136,7 @@ window.__RUNCTX__.ResultWatcher = {
       // failure is not worth alarming the user about.
       if (_injectFailCount >= INJECT_FAIL_TOAST_THRESHOLD) {
         if (await window.__RUNCTX__.shouldShowToasts()) {
-          window.__RUNCTX__.showToast("❌ Cannot find chat input", "error");
+          window.__RUNCTX__.showToast("Cannot find chat input", "error");
         }
         _injectFailCount = 0;
       }
@@ -150,7 +150,7 @@ window.__RUNCTX__.ResultWatcher = {
     // show the normal result toast (respects shouldShowToasts).
     if (await window.__RUNCTX__.shouldShowToasts()) {
       window.__RUNCTX__.hideStickyToast("runctx-progress");
-      window.__RUNCTX__.showToast("📥 Result received", "success");
+      window.__RUNCTX__.showToast("Result received", "success");
     }
     window.__RUNCTX__.playResultSound();
 
@@ -191,7 +191,7 @@ window.__RUNCTX__.ResultWatcher = {
       if (!st.consumeWarned) {
         st.consumeWarned = true;
         if (await window.__RUNCTX__.shouldShowToasts()) {
-          window.__RUNCTX__.showToast("⚠️ Failed to consume result - will retry", "warn");
+          window.__RUNCTX__.showToast("Failed to consume result - will retry", "warn");
         }
       }
     }
@@ -210,7 +210,7 @@ window.__RUNCTX__.ResultWatcher = {
           logger.info("Auto send finished", { sent });
           if (!sent) {
             if (await window.__RUNCTX__.shouldShowToasts()) {
-              window.__RUNCTX__.showToast("⚠️ Send button not found", "warn");
+              window.__RUNCTX__.showToast("Send button not found", "warn");
             }
           }
         } catch (error) {

@@ -62,7 +62,7 @@ async function runInTab(func, args = []) {
       tab.url.includes("gemini.google.com") ||
       tab.url.includes("chat.deepseek.com"));
   if (!supported) {
-    toastInTab("❌ Not on supported AI site", "error");
+    toastInTab("Not on supported AI site", "error");
     return null;
   }
   const results = await chrome.scripting.executeScript({

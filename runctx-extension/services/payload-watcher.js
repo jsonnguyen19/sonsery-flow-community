@@ -62,10 +62,7 @@ window.__RUNCTX__.PayloadWatcher = {
           detectedTool = parsedDetect.tool || parsedDetect.type || "unknown";
         } catch {}
         const idLabel = stableId ? String(stableId) : "no id";
-        window.__RUNCTX__.showToast(
-          `📦 Payload detected: ${detectedTool} (id: ${idLabel})`,
-          "info"
-        );
+        window.__RUNCTX__.showToast(`Payload detected: ${detectedTool} (id: ${idLabel})`, "info");
       }
     } catch {}
 

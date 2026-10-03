@@ -120,9 +120,9 @@ function setupManualControls() {
         await new Promise((resolve) => {
           chrome.runtime.sendMessage({ type: "RUNCTX_BRIDGE_SHUTDOWN" }, (res) => resolve(res));
         });
-        toastInTab("💀 watchctx killed", "success");
+        toastInTab("watchctx killed", "success");
       } catch (error) {
-        toastInTab("❌ Failed to kill watchctx: " + error.message, "error");
+        toastInTab("Failed to kill watchctx: " + error.message, "error");
       } finally {
         killWatchctxBtn.disabled = false;
         setBtnLabel(killWatchctxBtn, "Kill watchctx");
@@ -175,12 +175,12 @@ function setupManualControls() {
         "lastResultAt",
       ]);
 
-      toastInTab("🧹 Tools reset (clipboard & result cleared)", "success");
+      toastInTab("Tools reset (clipboard & result cleared)", "success");
 
       // 5. Re-render to update UI
       await render();
     } catch (error) {
-      toastInTab("❌ Failed to clear: " + error.message, "error");
+      toastInTab("Failed to clear: " + error.message, "error");
     } finally {
       clearToolsBtn.disabled = false;
       setBtnLabel(clearToolsBtn, "Reset tools");

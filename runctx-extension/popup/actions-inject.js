@@ -78,9 +78,9 @@ When the task is complete:
 
     const injected = await injectContext(tab.id, contextText);
     if (injected) {
-      toastInTab(`✅ ${label} (${tokens} tokens)`, "success");
+      toastInTab(`${label} (${tokens} tokens)`, "success");
     } else {
-      toastInTab(`📋 ${label} copied (${tokens} tokens)`, "info");
+      toastInTab(`${label} copied (${tokens} tokens)`, "info");
     }
   });
 }
