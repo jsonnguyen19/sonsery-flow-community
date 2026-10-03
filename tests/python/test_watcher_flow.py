@@ -79,7 +79,6 @@ def env(tmp_path, monkeypatch):
         script=[],
         published=[],
         runs=[],
-        analytics=[],
         history=[],
         subrun_cleanups=[],
         root_clears=[],
@@ -123,7 +122,6 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher_mod, "run_runctx", _run)
     monkeypatch.setattr(watcher_mod, "_IDLE_SLEEP", 0)
     monkeypatch.setattr(watcher_mod, "_QUEUE_TIMEOUT", 0.01)
-    monkeypatch.setattr(watcher_mod._analytics, "append", lambda **kw: ns.analytics.append(kw))
     monkeypatch.setattr(watcher_mod._history, "append", lambda **kw: ns.history.append(kw))
     monkeypatch.setattr(subruns_mod, "prune_stale", lambda: {"killed": []})
     monkeypatch.setattr(subruns_mod, "cleanup_all", lambda *a, **k: ns.subrun_cleanups.append(1))
@@ -147,10 +145,6 @@ def test_watcher_runs_valid_payload_and_publishes(env):
     assert state_mod.get_latest_result_payload()["result"] == env.published[0]
     assert hash_mod.read_hash(env.hash_out) == hash_mod.sha(env.published[0])
     assert hash_mod.read_hash(env.hash_in) == hash_mod.sha(payload)
-    assert len(env.analytics) == 1
-    assert env.analytics[0]["tool"] == "shell"
-    assert env.analytics[0]["success"] is True
-    assert env.analytics[0]["payload_id"] == 1
     assert len(env.history) == 1
     assert env.history[0]["status"] == "success"
     assert env.history[0]["tool"] == "shell"
@@ -231,14 +225,12 @@ def test_watcher_reports_failed_run(env):
     assert result["data"] == []
     assert result["id"] == 8
     assert env.history[0]["status"] == "error"
-    assert env.analytics[0]["success"] is False
 
 
-def test_watcher_survives_analytics_and_history_errors(env, monkeypatch):
+def test_watcher_survives_history_errors(env, monkeypatch):
     def _boom(**_kwargs):
         raise RuntimeError("disk full")
 
-    monkeypatch.setattr(watcher_mod._analytics, "append", _boom)
     monkeypatch.setattr(watcher_mod._history, "append", _boom)
     env.script = ["", _payload(9), _payload(10)]
     _run_watcher()
