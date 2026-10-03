@@ -3,7 +3,7 @@ pytest>=7.4.0
 
 # Runtime deps (cho test import)
 pyyaml>=6.0
-requests>=2.28.0
+requests>=2.34.2
 
 
 # Lint + format (PINNED: ruff >= 0.17 starts formatting python fences
