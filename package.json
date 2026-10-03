@@ -34,10 +34,10 @@
     "url": "https://jasonnguyen.website/"
   },
   "scripts": {
-    "setup": "node scripts/py.js python scripts/setup.py",
+    "setup": "python3 scripts/setup.py || python scripts/setup.py",
     "setup:dev": "bash scripts/setup-dev.sh",
-    "about": "node scripts/py.js python scripts/about.py",
-    "sync:prompts": "node scripts/py.js python sync-prompts.py",
+    "about": "python3 scripts/about.py || python scripts/about.py",
+    "sync:prompts": "python3 sync-prompts.py || python sync-prompts.py",
     "lint": "node scripts/py.js ruff check .",
     "lint:fix": "node scripts/py.js ruff check . --fix",
     "lint:js": "eslint runctx-extension scripts",
