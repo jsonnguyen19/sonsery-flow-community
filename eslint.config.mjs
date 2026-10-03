@@ -118,6 +118,31 @@ export default [
     },
   },
   {
+    // Node CommonJS tooling (scripts/*.js) — e.g. scripts/py.js.
+    // These run under Node, not the browser, so declare Node globals and use
+    // sourceType: commonjs (require/module/__dirname are legal here).
+    files: ["scripts/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "no-empty": ["error", { allowEmptyCatch: true }],
+      "no-cond-assign": "warn",
+      eqeqeq: ["warn", "smart"],
+      "no-var": "warn",
+      "prefer-const": "warn",
+      "no-useless-assignment": "off",
+    },
+  },
+  {
     // Test files use ES modules (vitest) — placed AFTER the general block to
     // override sourceType: script into module.
     files: ["runctx-extension/**/__tests__/**/*.js"],

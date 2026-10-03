@@ -16,6 +16,7 @@
     "developer-tools",
     "chrome-extension",
     "terminal",
+    "macos",
     "no-api-key",
     "cursor-alternative"
   ],
@@ -33,21 +34,21 @@
     "url": "https://jasonnguyen.website/"
   },
   "scripts": {
-    "setup": "python3 scripts/setup.py",
+    "setup": "node scripts/py.js python scripts/setup.py",
     "setup:dev": "bash scripts/setup-dev.sh",
-    "about": "python3 scripts/about.py",
-    "sync:prompts": "python3 sync-prompts.py",
-    "lint": ".venv-test/bin/ruff check .",
-    "lint:fix": ".venv-test/bin/ruff check . --fix",
-    "lint:js": "eslint runctx-extension",
-    "lint:js:fix": "eslint runctx-extension --fix",
-    "format": ".venv-test/bin/ruff format .",
-    "format:check": ".venv-test/bin/ruff format . --check",
+    "about": "node scripts/py.js python scripts/about.py",
+    "sync:prompts": "node scripts/py.js python sync-prompts.py",
+    "lint": "node scripts/py.js ruff check .",
+    "lint:fix": "node scripts/py.js ruff check . --fix",
+    "lint:js": "eslint runctx-extension scripts",
+    "lint:js:fix": "eslint runctx-extension scripts --fix",
+    "format": "node scripts/py.js ruff format .",
+    "format:check": "node scripts/py.js ruff format . --check",
     "format:js": "prettier --write \"runctx-extension/**/*.{js,css,html}\"",
     "format:js:check": "prettier --check \"runctx-extension/**/*.{js,css,html}\"",
-    "typecheck": ".venv-test/bin/basedpyright",
-    "test": ".venv-test/bin/python -m pytest",
-    "test:watch": ".venv-test/bin/python -m pytest -f",
+    "typecheck": "node scripts/py.js basedpyright",
+    "test": "node scripts/py.js python -m pytest",
+    "test:watch": "node scripts/py.js python -m pytest -f",
     "test:js": "vitest run",
     "test:js:watch": "vitest",
     "check": "pnpm lint && pnpm lint:js && pnpm format:check && pnpm format:js:check && pnpm typecheck && pnpm test",
@@ -61,8 +62,8 @@
       "prettier --write"
     ],
     "**/*.py": [
-      ".venv-test/bin/ruff check --fix",
-      ".venv-test/bin/ruff format"
+      "node scripts/py.js ruff check --fix",
+      "node scripts/py.js ruff format"
     ],
     "**/*.md": [
       "prettier --write"
