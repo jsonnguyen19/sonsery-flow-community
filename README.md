@@ -5,6 +5,8 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
 
+![Sonsery Flow — Turn free web AI into your CLI agent](docs/assets/thumbnail.png)
+
 > **Sonsery Flow** — use free web AI (ChatGPT, Claude, Gemini, DeepSeek, and more)
 > as a coding agent, right inside your terminal. No API keys, no subscriptions,
 > no token quotas. Copy a payload in the AI chat → the tool runs it on your

@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="sans-serif">
+  <defs>
+    <radialGradient id="tbCyan" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#06B6D4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="tbLime" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#A3E635" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#A3E635" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="tbIndigo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="tbGrid" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" fill-opacity="0.05"/>
+    </pattern>
+    <marker id="tbArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#06B6D4"/>
+    </marker>
+    <marker id="tbArrowLime" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#A3E635"/>
+    </marker>
+    <linearGradient id="tbLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0"/>
+      <stop offset="35%" stop-color="#06B6D4" stop-opacity="0.7"/>
+      <stop offset="65%" stop-color="#A3E635" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#A3E635" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="900" fill="#0a0a0b"/>
+  <rect width="1600" height="900" fill="url(#tbGrid)"/>
+  <circle cx="220" cy="160" r="520" fill="url(#tbCyan)"/>
+  <circle cx="1380" cy="780" r="560" fill="url(#tbLime)"/>
+  <circle cx="800" cy="450" r="420" fill="url(#tbIndigo)"/>
+
+  <!-- ===== HEADER: logo + wordmark ===== -->
+  <g transform="translate(80,62)">
+    <path d="M8 0 L24 14 L8 28" stroke="#06B6D4" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M24 0 L8 14 L24 28" stroke="#A3E635" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.85"/>
+  </g>
+  <text x="132" y="88" font-family="Space Grotesk, sans-serif" font-size="32" font-weight="600" fill="#f4f4f5" letter-spacing="-0.7">sonsery</text>
+  <text x="288" y="88" font-family="JetBrains Mono, monospace" font-size="28" font-weight="500" fill="#06B6D4" letter-spacing="0.8">flow</text>
+
+  <!-- version chip -->
+  <rect x="1380" y="60" width="140" height="34" rx="8" fill="rgba(6,182,212,0.10)" stroke="#06B6D4" stroke-opacity="0.5"/>
+  <text x="1450" y="83" font-family="JetBrains Mono, monospace" font-size="14" fill="#22D3EE" text-anchor="middle">v0.7.0</text>
+
+  <!-- ===== TITLE ===== -->
+  <text x="800" y="168" font-family="Space Grotesk, sans-serif" font-size="56" font-weight="700" fill="#f4f4f5" text-anchor="middle" letter-spacing="-1.4">Turn free web AI into your CLI agent.</text>
+  <text x="800" y="212" font-family="Inter, sans-serif" font-size="22" fill="#a1a1aa" text-anchor="middle">ChatGPT · Claude · Gemini · DeepSeek → auto-run locally. No API key, no subscription.</text>
+
+  <!-- ===== MAIN FLOW: AI card → bridge → terminal card ===== -->
+
+  <!-- AI WEB CARD (left) -->
+  <g transform="translate(90,270)">
+    <rect width="430" height="440" rx="20" fill="#111113" stroke="#06B6D4" stroke-opacity="0.55"/>
+    <text x="28" y="52" font-family="JetBrains Mono, monospace" font-size="16" fill="#22D3EE" letter-spacing="1">① AI WEB (FREE)</text>
+    <text x="28" y="84" font-family="Inter, sans-serif" font-size="15" fill="#a1a1aa">13 adapters · any chat site</text>
+    <line x1="28" y1="106" x2="402" y2="106" stroke="#27272a"/>
+
+    <!-- user bubble -->
+    <rect x="28" y="128" width="374" height="62" rx="10" fill="#18181b" stroke="#27272a"/>
+    <text x="48" y="152" font-family="JetBrains Mono, monospace" font-size="11" fill="#71717a">YOU</text>
+    <text x="48" y="176" font-family="Inter, sans-serif" font-size="15" fill="#f4f4f5">Refactor auth.ts &amp; run tests</text>
+
+    <!-- AI payload -->
+    <rect x="28" y="204" width="374" height="112" rx="10" fill="#18181b" stroke="#06B6D4" stroke-opacity="0.4"/>
+    <text x="48" y="228" font-family="JetBrains Mono, monospace" font-size="11" fill="#22D3EE">AI EMITS PAYLOAD</text>
+    <text x="48" y="252" font-family="JetBrains Mono, monospace" font-size="14" fill="#06B6D4">{ "id": 1791027119943,</text>
+    <text x="48" y="274" font-family="JetBrains Mono, monospace" font-size="14" fill="#06B6D4">  "tool": <tspan fill="#A3E635">"shell"</tspan>,</text>
+    <text x="48" y="296" font-family="JetBrains Mono, monospace" font-size="14" fill="#06B6D4">  "commands": [<tspan fill="#A3E635">"npm test"</tspan>] }</text>
+
+    <text x="28" y="352" font-family="JetBrains Mono, monospace" font-size="12" fill="#71717a">→ copied to clipboard, zero setup</text>
+    <text x="28" y="378" font-family="JetBrains Mono, monospace" font-size="12" fill="#71717a">→ multi-agent Dev ↔ Reviewer</text>
+    <text x="28" y="404" font-family="JetBrains Mono, monospace" font-size="12" fill="#71717a">→ diff preview before apply</text>
+  </g>
+
+  <!-- Arrows left<->bridge -->
+  <line x1="525" y1="440" x2="700" y2="450" stroke="#06B6D4" stroke-width="3" marker-end="url(#tbArrow)"/>
+  <text x="612" y="424" font-family="JetBrains Mono, monospace" font-size="14" fill="#22D3EE" text-anchor="middle">payload</text>
+  <line x1="700" y1="500" x2="525" y2="510" stroke="#A3E635" stroke-width="3" marker-end="url(#tbArrowLime)"/>
+  <text x="612" y="540" font-family="JetBrains Mono, monospace" font-size="14" fill="#A3E635" text-anchor="middle">result</text>
+
+  <!-- BRIDGE (center) -->
+  <g transform="translate(800,470)">
+    <circle r="92" fill="#111113" stroke="#06B6D4" stroke-opacity="0.5"/>
+    <circle r="62" fill="none" stroke="#06B6D4" stroke-opacity="0.25" stroke-dasharray="4 6"/>
+    <g transform="translate(-22,-22) scale(1.4)">
+      <path d="M8 0 L24 14 L8 28" stroke="#06B6D4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <path d="M24 0 L8 14 L24 28" stroke="#A3E635" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.85"/>
+    </g>
+    <text x="0" y="128" font-family="JetBrains Mono, monospace" font-size="15" fill="#22D3EE" text-anchor="middle">watchctx bridge</text>
+    <text x="0" y="150" font-family="JetBrains Mono, monospace" font-size="12" fill="#71717a" text-anchor="middle">127.0.0.1:8765–8785</text>
+  </g>
+
+  <!-- Arrows bridge<->terminal -->
+  <line x1="900" y1="450" x2="1075" y2="440" stroke="#06B6D4" stroke-width="3" marker-end="url(#tbArrow)"/>
+  <text x="988" y="424" font-family="JetBrains Mono, monospace" font-size="14" fill="#22D3EE" text-anchor="middle">execute</text>
+  <line x1="1075" y1="510" x2="900" y2="500" stroke="#A3E635" stroke-width="3" marker-end="url(#tbArrowLime)"/>
+  <text x="988" y="540" font-family="JetBrains Mono, monospace" font-size="14" fill="#A3E635" text-anchor="middle">paste back</text>
+
+  <!-- TERMINAL CARD (right) -->
+  <g transform="translate(1080,270)">
+    <rect width="430" height="440" rx="20" fill="#111113" stroke="#A3E635" stroke-opacity="0.55"/>
+    <circle cx="30" cy="30" r="5" fill="#ff5f57"/>
+    <circle cx="48" cy="30" r="5" fill="#febc2e"/>
+    <circle cx="66" cy="30" r="5" fill="#28c840"/>
+    <text x="90" y="35" font-family="JetBrains Mono, monospace" font-size="13" fill="#a1a1aa">watchctx — bash</text>
+    <line x1="0" y1="54" x2="430" y2="54" stroke="#27272a"/>
+
+    <text x="28" y="96" font-family="JetBrains Mono, monospace" font-size="14" fill="#06B6D4">$ watchctx --auto</text>
+    <text x="28" y="128" font-family="JetBrains Mono, monospace" font-size="14" fill="#a1a1aa">→ payload captured</text>
+    <text x="28" y="160" font-family="JetBrains Mono, monospace" font-size="14" fill="#A3E635">✓ shell · npm test</text>
+    <text x="28" y="192" font-family="JetBrains Mono, monospace" font-size="14" fill="#A3E635">✓ read · src/auth.ts</text>
+    <text x="28" y="224" font-family="JetBrains Mono, monospace" font-size="14" fill="#A3E635">✓ replace · added JWT</text>
+    <text x="28" y="256" font-family="JetBrains Mono, monospace" font-size="14" fill="#A3E635">✓ write · README.md</text>
+    <text x="28" y="288" font-family="JetBrains Mono, monospace" font-size="14" fill="#22D3EE">✓ result → clipboard</text>
+    <text x="28" y="312" font-family="JetBrains Mono, monospace" font-size="14" fill="#f4f4f5">▋</text>
+
+    <line x1="28" y1="336" x2="402" y2="336" stroke="#27272a"/>
+    <text x="28" y="364" font-family="Inter, sans-serif" font-size="13" fill="#71717a">Sub-run manager · kill any process</text>
+    <text x="28" y="388" font-family="Inter, sans-serif" font-size="13" fill="#71717a">Terminal log · live stdout tail</text>
+    <text x="28" y="412" font-family="Inter, sans-serif" font-size="13" fill="#71717a">History · analytics · CSV/JSON</text>
+  </g>
+
+  <!-- ===== TOOL STRIP (bottom): 4 native tools ===== -->
+  <text x="90" y="766" font-family="JetBrains Mono, monospace" font-size="15" fill="#71717a">4 native JSON tools</text>
+
+  <g transform="translate(90,786)">
+    <rect width="330" height="60" rx="12" fill="#111113" stroke="#27272a"/>
+    <text x="20" y="26" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#A3E635">shell</text>
+    <text x="20" y="46" font-family="Inter, sans-serif" font-size="12" fill="#71717a">run commands · seq / parallel</text>
+  </g>
+  <g transform="translate(440,786)">
+    <rect width="330" height="60" rx="12" fill="#111113" stroke="#27272a"/>
+    <text x="20" y="26" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#A3E635">read</text>
+    <text x="20" y="46" font-family="Inter, sans-serif" font-size="12" fill="#71717a">files · 1-based line ranges</text>
+  </g>
+  <g transform="translate(790,786)">
+    <rect width="330" height="60" rx="12" fill="#111113" stroke="#27272a"/>
+    <text x="20" y="26" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#A3E635">replace</text>
+    <text x="20" y="46" font-family="Inter, sans-serif" font-size="12" fill="#71717a">exact-match search &amp; swap</text>
+  </g>
+  <g transform="translate(1140,786)">
+    <rect width="330" height="60" rx="12" fill="#111113" stroke="#27272a"/>
+    <text x="20" y="26" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#A3E635">write</text>
+    <text x="20" y="46" font-family="Inter, sans-serif" font-size="12" fill="#71717a">full file overwrite</text>
+  </g>
+</svg>
