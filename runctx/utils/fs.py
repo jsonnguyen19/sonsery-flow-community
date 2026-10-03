@@ -1,7 +1,7 @@
 """Filesystem helpers: safe_path, read/write text, read_file_range."""
 
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Optional
 
 # Default excluded directories for search/read operations
@@ -37,6 +37,20 @@ def _is_excluded_path(path: Path) -> bool:
     return any(part in EXCLUDED_DIRS for part in path.parts)
 
 
+def is_absolute_path(value: str) -> bool:
+    """Cross-platform absolute check.
+
+    On Windows, Path('/etc/passwd').is_absolute() is False (no drive letter),
+    so also treat POSIX-style and rooted paths as absolute on every OS.
+    """
+    return (
+        Path(value).is_absolute()
+        or PurePosixPath(value).is_absolute()
+        or PureWindowsPath(value).is_absolute()
+        or value.startswith(("/", "\\"))
+    )
+
+
 def safe_path(value: str) -> Path:
     """Validate path to prevent directory traversal and excluded dirs.
 
@@ -44,7 +58,7 @@ def safe_path(value: str) -> Path:
     and excluded dirs (node_modules, venv, ...) are all blocked.
     """
     path = Path(value)
-    if path.is_absolute():
+    if is_absolute_path(value):
         print(f"ERROR: absolute paths are not allowed: {value}")
         sys.exit(1)
     if ".." in path.parts:

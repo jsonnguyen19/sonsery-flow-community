@@ -126,7 +126,7 @@ def test_http_rpc_oversized_body(rpc_server):
     # Either outcome means the request was rejected. A real client must handle it.
     try:
         status, body = _post_json(f"{rpc_server}/rpc", big)
-    except urllib.error.URLError:
+    except (urllib.error.URLError, ConnectionError):
         return
     assert status == 400
     assert "error" in body

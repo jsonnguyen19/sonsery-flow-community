@@ -12,7 +12,7 @@ from .constants import RPC_TOOLS
 from .dispatcher import process_payload
 from .root import ROOT_PACKAGE, ROOT_PROJECT, normalize_root_kind
 from .root import get_root as _get_root
-from .utils.fs import EXCLUDED_DIRS
+from .utils.fs import EXCLUDED_DIRS, is_absolute_path
 
 
 class RpcError(Exception):
@@ -52,7 +52,7 @@ def _resolve_within_root(value: str, base_root: Optional[Path] = None) -> Path:
     # This is the caller's contract.
     if base_root is not None:
         raw = Path(value)
-        if raw.is_absolute():
+        if is_absolute_path(value):
             raise RpcError(400, f"absolute paths are not allowed: {value}")
         if ".." in raw.parts:
             raise RpcError(400, f"parent traversal is not allowed: {value}")
@@ -68,7 +68,7 @@ def _resolve_within_root(value: str, base_root: Optional[Path] = None) -> Path:
         return resolved
 
     raw = Path(value)
-    if raw.is_absolute():
+    if is_absolute_path(value):
         raise RpcError(400, f"absolute paths are not allowed: {value}")
     if ".." in raw.parts:
         raise RpcError(400, f"parent traversal is not allowed: {value}")
