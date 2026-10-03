@@ -73,7 +73,7 @@ def get_log_since(since: int, limit: int = 200) -> dict:
     Returns { lines, next, first_seq, dropped }.
     """
     # Server-side clamp: limit <= 100 so the response is at most ~50KB, guaranteed
-    # under MAX_RPC_RESPONSE_CHARS = 100_000 (see docs/ui-terminal-logs.md §1.2.5).
+    # under MAX_RPC_RESPONSE_CHARS = 100_000 (see docs/architecture/tabs.md, Terminal tab).
     limit = max(1, min(int(limit), 100))
     since = int(since) if since else 0
     with _log_lock:

@@ -12,7 +12,7 @@ On Linux: NVM is sourced only when the command actually needs Node
 (npm/pnpm/yarn/node/...). Other commands run directly -> avoid the ~3s NVM
 load overhead per run.
 
-See docs/features-subrun-manager.md.
+See docs/features/subrun-manager.md.
 """
 
 import os

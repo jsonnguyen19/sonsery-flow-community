@@ -31,12 +31,14 @@ python3 scripts/setup.py
 ./sync            # sync prompts into the extension
 ```
 
-That's it for the backend. Next, install the Chrome extension.
+That's it for the backend. Next, install the browser extension.
 
-## Chrome extension
+## Browser extension
 
-The extension lives in `runctx-extension/`. To find its exact path (and get it in
-a form Windows/WSL can paste directly), run:
+The Chrome/Edge extension lives in `runctx-extension/`. The Firefox build is
+produced by `pnpm ext:firefox` into `runctx-extension-firefox/`. To find the
+Chrome extension's exact path (and get it in a form Windows/WSL can paste
+directly), run:
 
 ```bash
 pnpm about                     # or: python3 scripts/about.py
@@ -51,46 +53,34 @@ This prints the extension path, HTTP bridge ports, and available commands.
 |---|---|
 | `Extension path` (WSL UNC) | **The key one.** On WSL, `about` prints the Windows UNC form — `\\wsl.localhost\<Distro>\home\...\runctx-extension`. Copy this **straight into the Explorer address bar** and hit Enter, then use it as the folder for `Load unpacked`. No manual path translation needed. |
 | `Extension path` (Linux) | The raw POSIX path, kept for reference. Ignore it on Windows — use the UNC path above. |
-| `HTTP bridge ports` | The port range the clipboard watcher + bridge listen on. Useful when debugging or when a port is already taken. |
+| `HTTP bridge ports` | The port range the clipboard watcher + bridge listen on. The bridge scans **8765 through 8785**, plus **8899** (mobile remote). Useful when debugging or when a port is already taken. |
 | `Project root` / `Platform` / `Python` | Environment info — the first thing to include in a bug report. |
 
-**Example output (WSL):**
-
-```
-============================================================
-  sonsery-flow  v0.7.0
-============================================================
-  Description  : AI workflow automation: bridge AI chat with the terminal
-  Project root : /home/sonnguyen/projects/sonsery-flow
-  Platform     : Linux 5.15.90.1-microsoft-standard-WSL2
-  Python       : 3.11.6
-
-============================================================
-  CHROME EXTENSION
-============================================================
-  Path (copy into Explorer / Load unpacked):
-    \\wsl.localhost\Ubuntu\home\sonnguyen\projects\sonsery-flow\runctx-extension
-
-  Linux path (for reference):
-    /home/sonnguyen/projects/sonsery-flow/runctx-extension
-
-============================================================
-  HTTP BRIDGE
-============================================================
-  Ports        : 8765-8770 (6 ports)
-...
-```
-
-On Linux / macOS (no WSL), the UNC line is omitted and you get the plain path.
-
-### Install the extension
+### Install — Chrome / Edge
 
 1. Run `pnpm about` and copy the **WSL UNC path** (Windows) or the plain path
    (Linux/macOS).
-2. Open `chrome://extensions/` and enable **Developer mode**.
+2. Open `chrome://extensions/` (or `edge://extensions/`) and enable **Developer mode**.
 3. Click **Load unpacked** → paste the path
    (on WSL, paste into the Explorer address bar and press Enter first) → select.
 4. Shortcut: `Ctrl+Shift+Space`.
+
+### Install — Firefox
+
+Firefox needs the manifest to be named exactly `manifest.json`, so a dedicated
+build folder is produced:
+
+```bash
+pnpm ext:firefox        # produces runctx-extension-firefox/
+```
+
+Then:
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. **Load Temporary Add-on** → pick `runctx-extension-firefox/manifest.json`.
+
+See [`docs/dev/firefox.md`](docs/dev/firefox.md) for the throttling tweaks (about:config)
+that make Firefox behave like Chrome, and how to move the sidebar to the right.
 
 ### Optional: keep Chrome running in the background (recommended)
 
@@ -147,6 +137,35 @@ Terminal=false
 > **Tip:** A separate `--user-data-dir` keeps the agent profile isolated from your
 > daily browser, so extension reloads and AI-site login state stay separate.
 
+## Pro & Community
+
+The repo you are reading is the **Pro build** — it ships with all Pro features.
+The **Community (MIT)** build is produced at build time by
+`scripts/split-community.sh` into a separate repo; it contains no Pro code in
+any form.
+
+| | Community (MIT) | Pro ($39 one-time) |
+|---|---|---|
+| Core automation (shell/read/replace/write) | ✅ | ✅ |
+| Adapters | chatgpt + claude + gemini + deepseek + fallback | all 13 |
+| Tabs | Flow, Stats (overview), History, Settings | + Project, Terminal, Skills |
+| License key | not needed | required (max 3 machines) |
+| Multi-agent switch, , @mention, mobile remote | ❌ | ✅ |
+| Firefox build | ❌ | ✅ |
+
+For the full split architecture see [`docs/split/0-overview.md`](docs/split/0-overview.md).
+
+### License (Pro)
+
+The Pro build has a runtime **license gate**: automation is paused when the
+stored key is `invalid` / `unlicensed` / `stale`. Enter / manage the key in the
+**Settings tab → License**. Storage key = `license` in `chrome.storage.local`.
+
+> The current build runs the license subsystem in **simulated mode**
+> (`SIMULATE = true` in `popup/license.js`) — no backend calls yet. Real API
+> integration (LemonSqueezy) is pending; see
+> [`docs/split/5-checklist.md`](docs/split/5-checklist.md) §12.
+
 ## Aliases (optional)
 
 Setup does **NOT** write aliases automatically. Add these yourself if you want to
@@ -172,7 +191,7 @@ function watchctx-sync { & "C:\path\to\sonsery-flow\sync.bat" @args }
 ## Requirements
 
 - Python 3.8+
-- Chrome/Edge
+- Chrome/Edge (or Firefox for the Pro Firefox build)
 
 ## Links
 
@@ -186,15 +205,19 @@ function watchctx-sync { & "C:\path\to\sonsery-flow\sync.bat" @args }
 ## Contributing
 
 Contributor / dev setup (dev venv, lint, format, typecheck, tests) lives in
-[`docs/dev-setup.md`](docs/dev-setup.md). End-users never need it.
+[`docs/dev/setup.md`](docs/dev/setup.md). End-users never need it.
 
 Repo layout:
 
 - `watchctx.py` — entrypoint: clipboard watcher + HTTP bridge
 - `runctx_core.py` — entrypoint: payload processing
 - `runctx/` — main package
-- `runctx-extension/` — Chrome extension
+- `runctx-extension/` — Chrome/Edge extension (Pro build)
+- `runctx-extension-firefox/` — Firefox build output (`pnpm ext:firefox`)
+- `mobile/` — mobile remote server (Pro)
 - `scripts/` — setup scripts (see [`scripts/README.md`](scripts/README.md))
+- `scripts/split-community.sh` / `scripts/sync-community.sh` — Community repo
+  build + sync (see [`docs/split/3-workflow.md`](docs/split/3-workflow.md))
 - `prompts/` — prompt templates
 - `tests/python/` — pytest test suite
 

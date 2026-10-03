@@ -3,7 +3,7 @@
 Manages the sub-processes spawned by the `shell` tool: see what is running,
 kill them individually, avoid orphans when watchctx exits.
 
-See docs/features-subrun-manager.md for the full design.
+See docs/features/subrun-manager.md for the full design.
 
 Public API:
 - register / mark_status / unregister
