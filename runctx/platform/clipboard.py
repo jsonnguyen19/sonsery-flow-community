@@ -10,6 +10,7 @@ Callers only use `get_clipboard()`, `set_clipboard(text)`,
 from __future__ import annotations
 
 import base64
+import os
 import queue
 import subprocess
 import threading
@@ -89,6 +90,7 @@ def _get_clipboard_windows() -> str:
             [
                 "powershell.exe",
                 "-NoProfile",
+                "-NonInteractive",
                 "-Command",
                 "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new(); Get-Clipboard",
             ],
@@ -102,7 +104,13 @@ def _get_clipboard_windows() -> str:
 
 
 def _set_clipboard_windows(text: str) -> bool:
-    """Set clipboard on Windows using PowerShell."""
+    """Set clipboard on Windows using PowerShell.
+
+    Text is base64-encoded (UTF-8) and passed via env var so we avoid
+    stdin/console-encoding pitfalls entirely.
+    """
+    encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
+    env = {**os.environ, "RUNCTX_CLIP_B64": encoded}
     try:
         subprocess.run(
             [
@@ -110,11 +118,10 @@ def _set_clipboard_windows(text: str) -> bool:
                 "-NoProfile",
                 "-NonInteractive",
                 "-Command",
-                "[Console]::InputEncoding = [System.Text.Encoding]::UTF8; $text = [Console]::In.ReadToEnd(); Set-Clipboard -Value $text",
+                "Set-Clipboard -Value ([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:RUNCTX_CLIP_B64)))",
             ],
-            input=text,
+            env=env,
             text=True,
-            encoding="utf-8",
             timeout=CLIPBOARD_TIMEOUT,
             check=True,
         )
