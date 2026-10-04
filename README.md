@@ -14,92 +14,174 @@
 
 A tool that automates the workflow between AI Chat (ChatGPT, Claude, Gemini, DeepSeek) and the terminal. Community edition — MIT, open source.
 
+---
+
 ## How it works
 
 1. Copy the payload from AI Chat to the clipboard
 2. `watchctx` automatically detects it and executes the command
 3. The result is copied back to the clipboard to paste into AI Chat
 
-## Quick start
+---
 
-> **Using the tool?** You only need the two steps below. Ignore anything about
-> `pnpm setup:dev` — that is for contributors.
+## Setup — step by step
 
-```bash
-python3 scripts/setup.py
+Follow these steps **in order**. Each one ends with something you can verify
+before moving on. Takes about 5 minutes.
 
-# 2. Run
-./run             # clipboard watcher + HTTP bridge
-./sync            # sync prompts into the extension
-```
-
-That's it for the backend. Next, install the browser extension.
-
-## Browser extension
-
-The Chrome/Edge extension lives in `runctx-extension/`. The Firefox build is
-produced by `pnpm ext:firefox` into `runctx-extension-firefox/`. To find the
-Chrome extension's exact path (and get it in a form Windows/WSL can paste
-directly), run:
+### Step 1 — Clone the repo
 
 ```bash
-pnpm about                     # or: python3 scripts/about.py
-./run --about                  # or ./run -a
+git clone https://github.com/jsonnguyen19/sonsery-flow-community.git
+cd sonsery-flow
 ```
 
-This prints the extension path, HTTP bridge ports, and available commands.
+### Step 2 — Run setup
 
-### Fields worth knowing
+```bash
+pnpm setup
+```
 
-| Field | Why it matters |
-|---|---|
-| `Extension path` (WSL UNC) | **The key one.** On WSL, `about` prints the Windows UNC form — `\\wsl.localhost\<Distro>\home\...\runctx-extension`. Copy this **straight into the Explorer address bar** and hit Enter, then use it as the folder for `Load unpacked`. No manual path translation needed. |
-| `Extension path` (Linux) | The raw POSIX path, kept for reference. Ignore it on Windows — use the UNC path above. |
-| `HTTP bridge ports` | The port range the clipboard watcher + bridge listen on. The bridge scans **8765 through 8785**, plus **8899** (mobile remote). Useful when debugging or when a port is already taken. |
-| `Project root` / `Platform` / `Python` | Environment info — the first thing to include in a bug report. |
+> No `pnpm`? Install it once: `npm install -g pnpm` (or see
+> [pnpm.io](https://pnpm.io/installation)).
+>
+> Don't want pnpm? Run the script directly: `python3 scripts/setup.py`.
 
-### Install — Chrome / Edge
+This creates the `venv/` folder, installs Python runtime deps, and writes the
+wrapper scripts **`run`** and **`sync`** at the repo root.
 
-1. Run `pnpm about` and copy the **WSL UNC path** (Windows) or the plain path
-   (Linux/macOS).
-2. Open `chrome://extensions/` (or `edge://extensions/`) and enable **Developer mode**.
+### Step 3 — Test it runs
+
+```bash
+./run
+```
+
+You should see the clipboard watcher start and the HTTP bridge announce a port
+in the `8765–8785` range. **Leave this terminal running.**
+
+On Windows (cmd/PowerShell) use `run.bat` instead:
+
+```powershell
+.\run.bat
+```
+
+Open a **second terminal** for the next steps.
+
+### Step 4 — Configure the alias (WSL first)
+
+Setup does **NOT** write aliases for you — add them yourself so you can type
+`watchctx` from any directory.
+
+**WSL / Linux / macOS (bash / zsh)** — add to `~/.bashrc` or `~/.zshrc`,
+replacing `/path/to/sonsery-flow` with your actual clone path:
+
+```bash
+alias watchctx='/path/to/sonsery-flow/run'
+alias watchctx-sync='/path/to/sonsery-flow/sync'
+```
+
+<details>
+<summary><b>Other shells (Windows PowerShell, cmd, Git Bash) — click to expand</b></summary>
+
+**Windows PowerShell** — add to `$PROFILE`:
+
+```powershell
+function watchctx      { & "C:\path\to\sonsery-flow\run.bat" @args }
+function watchctx-sync { & "C:\path\to\sonsery-flow\sync.bat" @args }
+```
+
+**Git Bash** — same as WSL, add to `~/.bashrc`:
+
+```bash
+alias watchctx='/c/path/to/sonsery-flow/run'
+alias watchctx-sync='/c/path/to/sonsery-flow/sync'
+```
+
+**cmd.exe** — no native alias. Use `doskey` in a startup script, or just call
+`C:\path\to\sonsery-flow\run.bat` directly.
+
+</details>
+
+### Step 5 — Reload your terminal
+
+For the new aliases to take effect, either **open a new terminal** or source
+the config file:
+
+```bash
+source ~/.zshrc      # zsh
+. ~/.bashrc          # bash
+```
+
+### Step 6 — Verify the terminal
+
+Still in the second terminal, run:
+
+```bash
+watchctx
+```
+
+You should see the same output as Step 3 (watcher + bridge). If it runs,
+**your terminal setup is done** — Ctrl+C to stop, or leave it as your main
+watcher terminal.
+
+> If `watchctx: command not found`, the alias didn't load. Re-check Step 4
+> path and re-run `source` from Step 5.
+
+### Step 7 — Load the Chrome extension
+
+The extension lives in `runctx-extension/`. To get its exact path (and the
+Windows UNC form for WSL), run:
+
+```bash
+pnpm about
+```
+
+Copy the **Extension path** it prints. Then:
+
+1. Open `chrome://extensions/` (or `edge://extensions/`).
+2. Enable **Developer mode** (top-right toggle).
 3. Click **Load unpacked** → paste the path
-   (on WSL, paste into the Explorer address bar and press Enter first) → select.
-4. Shortcut: `Ctrl+Shift+Space`.
+   (on WSL: paste the **Windows UNC path** — `\\wsl.localhost\<Distro>\home\...\runctx-extension` — into the Explorer address bar and press Enter first).
+4. **Pin** the extension (puzzle-piece icon → pin).
+5. **Reload** the extension once (the refresh icon on its card).
 
-### Install — Firefox
+### Step 8 — Test with DeepSeek
 
-Firefox needs the manifest to be named exactly `manifest.json`, so a dedicated
-build folder is produced:
+1. Open `chat.deepseek.com`.
+2. Click the pinned Sonsery Flow icon → the side panel opens.
+3. Flip the **Automation** toggle **ON**.
+4. **Copy this ready-made payload** and send it in the chat:
 
-```bash
-pnpm ext:firefox        # produces runctx-extension-firefox/
+```json
+{ "id": 1791016717000, "tool": "shell", "mode": "sequential", "commands": ["pwd"] }
 ```
 
-Then:
+> Bump the `id` to any newer millisecond timestamp (e.g. `Date.now()`) if the
+> extension ever reports the payload as already processed.
 
-1. Open `about:debugging#/runtime/this-firefox`.
-2. **Load Temporary Add-on** → pick `runctx-extension-firefox/manifest.json`.
+5. Watch: the payload is copied → `watchctx` runs it → the result (your current
+   working directory) is pasted back into the chat.
 
-See [`docs/dev/firefox.md`](docs/dev/firefox.md) for the throttling tweaks (about:config)
-that make Firefox behave like Chrome, and how to move the sidebar to the right.
+If you see the result come back, **setup is complete**. 🎉
 
-### Optional: keep Chrome running in the background (recommended)
+---
 
-By default Chrome throttles timers, freezes tabs, and sleeps background windows —
-this can pause the automation loop when the AI tab is not focused. Launch Chrome
-with the flags below so the loop keeps running even when you minimize or switch
-away.
+## Bonus — a dedicated background Chrome for coding
+
+**Recommended.** By default Chrome throttles timers, freezes tabs, and sleeps
+background windows — this can pause the automation loop when the AI tab loses
+focus. Launch Chrome with a **separate profile** and the flags below so the loop
+keeps running even when you minimize or switch away.
 
 | Flag | Purpose |
 |---|---|
-| `--user-data-dir="..."` | Use a separate profile so it doesn't conflict with your main Chrome |
+| `--user-data-dir="..."` | Separate profile, isolated from your daily Chrome |
 | `--disable-background-timer-throttling` | Don't slow down timers in background tabs |
 | `--disable-backgrounding-occluded-windows` | Don't deprioritize covered/occluded windows |
 | `--disable-renderer-backgrounding` | Don't lower renderer priority in the background |
-| `--intensive-wake-up-throttling-policy=disabled` | Disable the aggressive wake-up throttling policy |
+| `--intensive-wake-up-throttling-policy=disabled` | Disable aggressive wake-up throttling |
 
-**Windows (PowerShell)** — create a dedicated shortcut:
+**Windows (PowerShell)** — creates a Desktop shortcut:
 
 ```powershell
 $WshShell = New-Object -ComObject WScript.Shell
@@ -134,10 +216,12 @@ Terminal=false
 ```
 
 > **Note:** For Edge, replace the executable path (`chrome.exe` → `msedge.exe`,
-> `Google Chrome` → `Microsoft Edge`) — the flag names are identical.
+> `Google Chrome` → `Microsoft Edge`) — flag names are identical.
 
-> **Tip:** A separate `--user-data-dir` keeps the agent profile isolated from your
-> daily browser, so extension reloads and AI-site login state stay separate.
+> **Tip:** Install the extension into this dedicated profile once. Keep the
+> window minimized in the background — the automation loop keeps running.
+
+---
 
 ## Pro & Community
 
@@ -168,32 +252,46 @@ stored key is `invalid` / `unlicensed` / `stale`. Enter / manage the key in the
 > integration (LemonSqueezy) is pending; see
 > [`docs/split/5-checklist.md`](docs/split/5-checklist.md) §12.
 
-## Aliases (optional)
+---
 
-Setup does **NOT** write aliases automatically. Add these yourself if you want to
-type `watchctx` from any directory.
+## Firefox (Pro)
 
-**Linux/macOS/WSL (bash/zsh)** — add to `~/.bashrc` or `~/.zshrc`:
+Firefox needs a dedicated build folder:
 
 ```bash
-alias watchctx='/path/to/sonsery-flow/run'
-alias watchctx-sync='/path/to/sonsery-flow/sync'
+pnpm ext:firefox        # produces runctx-extension-firefox/
 ```
 
-**Windows (PowerShell)** — add to `$PROFILE`:
+Then load `runctx-extension-firefox/manifest.json` via
+`about:debugging#/runtime/this-firefox` → **Load Temporary Add-on**.
 
-```powershell
-function watchctx      { & "C:\path\to\sonsery-flow\run.bat" @args }
-function watchctx-sync { & "C:\path\to\sonsery-flow\sync.bat" @args }
-```
+See [`docs/dev/firefox.md`](docs/dev/firefox.md) for throttling tweaks
+(`about:config`) that make Firefox behave like Chrome, and how to move the
+sidebar to the right.
 
-> After adding the alias, **open a new terminal** (or `source ~/.zshrc` /
-> `. ~/.bashrc`) to reload the config.
+---
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `pnpm setup` | End-user setup: `venv/` + runtime deps + `run`/`sync` wrappers |
+| `./run` | Start `watchctx` (clipboard watcher + HTTP bridge) |
+| `./sync` | Sync prompts into the extension |
+| `pnpm about` | Print extension path, bridge ports, available commands |
+| `pnpm setup:dev` | Contributor setup (`.venv-test/` + dev deps) |
+| `pnpm ext:firefox` | Build the Firefox folder |
+
+---
 
 ## Requirements
 
 - Python 3.8+
-- Chrome/Edge (or Firefox for the Pro Firefox build)
+- Chrome 100+ / Edge 100+ (Manifest V3), or Firefox (Pro build)
+
+No GPU, no Docker, no admin rights needed.
+
+---
 
 ## Links
 
@@ -203,6 +301,8 @@ function watchctx-sync { & "C:\path\to\sonsery-flow\sync.bat" @args }
 - **LinkedIn** — <https://www.linkedin.com/in/son-nguyen-650628344/>
 - **Contact** — hongsonit10@gmail.com
 - **Discord** — coming soon
+
+---
 
 ## Contributing
 

@@ -15,7 +15,7 @@ No API keys. No server. Everything runs locally.
 
 | Component | Requirement |
 |---|---|
-| OS | Windows 10+, macOS 11+, Linux (Ubuntu 20.04+ / equivalent) |
+| OS | Windows 10+, macOS 11+, Linux (Ubuntu 20.04+ / equivalent), WSL |
 | Python | 3.8 or above (3.11+ recommended) |
 | Browser | Chrome 100+ or Edge 100+ (Manifest V3) |
 
@@ -23,54 +23,158 @@ No GPU, no Docker, no admin rights needed.
 
 ---
 
-## 1. Install the backend
+## Setup — step by step
 
-From the repo root:
+Follow these in order. Each step has something you can verify before moving on.
+
+### Step 1 — Clone
 
 ```bash
-python3 scripts/setup.py
+git clone https://github.com/jsonnguyen19/sonsery-flow-community.git
+cd sonsery-flow-community
 ```
 
-This creates `venv/`, installs runtime deps, and writes two wrapper scripts at
-the project root: `./run` and `./sync`.
+### Step 2 — Run setup
 
-## 2. Start the watcher
+```bash
+pnpm setup
+```
+
+> No `pnpm`? Install it once: `npm install -g pnpm`. Or run the script
+> directly: `python3 scripts/setup.py`.
+
+This creates `venv/`, installs runtime deps, and writes three wrappers at the
+repo root: **`run`**, **`sync`**, **`run-mobile`**.
+
+### Step 3 — Test it runs
 
 ```bash
 ./run
 ```
 
-`./run` starts the clipboard watcher and a local HTTP bridge on the first free
-port in **8765–8785**. Leave it running in a terminal.
+You should see the clipboard watcher start and the HTTP bridge announce a port
+in the `8765–8785` range. **Leave this terminal running.**
 
-## 3. Load the extension
+On Windows (cmd/PowerShell) use `run.bat` instead:
 
-1. `pnpm about` (or `python3 scripts/about.py`) prints the exact
-   `runctx-extension/` path — on WSL it prints a Windows UNC path you can paste
-   straight into Explorer.
-2. Open `chrome://extensions/` (or `edge://extensions/`), enable
-   **Developer mode**.
-3. **Load unpacked** → select the `runctx-extension/` folder.
-4. Pin the extension and click the icon to open the side panel.
-5. Shortcut: `Ctrl+Shift+Space`.
+```powershell
+.\run.bat
+```
 
-## 4. Run your first loop
+### Step 4 — Configure the alias (WSL first)
 
-1. Open an AI tab (e.g. `chatgpt.com`) and paste the `agentctx` prompt — click
-   **Inject context** in the Flow tab, or copy it manually.
-2. Flip the **Automation** toggle in the Flow tab ON.
-3. Ask the AI to do something on your project. It replies with a JSON payload
-   (a `shell` / `read` / `replace` / `write` block).
-4. The extension copies it → `watchctx` runs it → the result is pasted back into
-   the chat.
+Setup does **NOT** write aliases for you — add them yourself so you can type
+`watchctx` from any directory.
 
-The loop keeps running until you flip the toggle OFF.
+**WSL / Linux / macOS (bash / zsh)** — add to `~/.bashrc` or `~/.zshrc`,
+replacing `/path/to/sonsery-flow-community` with your actual clone path:
+
+```bash
+alias watchctx='/path/to/sonsery-flow-community/run'
+alias watchctx-sync='/path/to/sonsery-flow-community/sync'
+```
+
+<details>
+<summary><b>Other shells (Windows PowerShell, Git Bash) — click to expand</b></summary>
+
+**Windows PowerShell** — add to `$PROFILE`:
+
+```powershell
+function watchctx      { & "C:\path\to\sonsery-flow-community\run.bat" @args }
+function watchctx-sync { & "C:\path\to\sonsery-flow-community\sync.bat" @args }
+```
+
+**Git Bash** — same as WSL:
+
+```bash
+alias watchctx='/c/path/to/sonsery-flow-community/run'
+alias watchctx-sync='/c/path/to/sonsery-flow-community/sync'
+```
+
+</details>
+
+### Step 5 — Reload your terminal
+
+Either open a new terminal or source the config file:
+
+```bash
+source ~/.zshrc      # zsh
+. ~/.bashrc          # bash
+```
+
+### Step 6 — Verify the terminal
+
+Run:
+
+```bash
+watchctx
+```
+
+Same output as Step 3 = **terminal setup done**.
+
+### Step 7 — Load the Chrome extension
+
+```bash
+pnpm about
+```
+
+Copy the **Extension path**. Then:
+
+1. Open `chrome://extensions/` (or `edge://extensions/`), enable **Developer mode**.
+2. **Load unpacked** → paste the path
+   (on WSL: paste the **Windows UNC path** — `\\wsl.localhost\<Distro>\home\...\runctx-extension` — into the Explorer address bar and press Enter first).
+3. **Pin** the extension and **reload** it once.
+4. Shortcut: `Ctrl+Shift+Space`.
+
+### Step 8 — Test with DeepSeek
+
+1. Open `chat.deepseek.com`.
+2. Click the pinned Sonsery Flow icon → side panel opens.
+3. Flip **Automation** toggle **ON**.
+4. **Copy this ready-made payload** and send it in the chat:
+
+```json
+{ "id": 1791016717000, "tool": "shell", "mode": "sequential", "commands": ["pwd"] }
+```
+
+> Bump the `id` to any newer millisecond timestamp (e.g. `Date.now()`) if the
+> extension ever reports the payload as already processed.
+
+5. Watch the loop: payload copied → `watchctx` runs it → result (your current
+   working directory) pasted back.
+
+If you see the result come back, **setup is complete**. 🎉
+
+---
+
+## Bonus — a dedicated background Chrome for coding
+
+**Recommended.** Chrome throttles timers, freezes tabs, and sleeps background
+windows by default — this can pause the automation loop when the AI tab loses
+focus. Launch Chrome with a separate profile and the flags below so the loop
+keeps running when minimized or unfocused.
+
+```bash
+# macOS example
+open -na "Google Chrome" --args \
+  --user-data-dir="$HOME/Library/Application Support/Google/Chrome Agent" \
+  --disable-background-timer-throttling \
+  --disable-backgrounding-occluded-windows \
+  --disable-renderer-backgrounding \
+  --intensive-wake-up-throttling-policy=disabled
+```
+
+See the main README "Bonus — a dedicated background Chrome for coding" section
+for Windows (PowerShell) and Linux (`.desktop`) variants.
+
+> **Tip:** Install the extension into this dedicated profile once. Keep the
+> window minimized — the loop keeps running.
 
 ---
 
 ## Manual mode
 
-Don't want the loop to run on its own? Leave Automation OFF and use the
+Don't want the loop running on its own? Leave Automation **OFF** and use the
 **manual controls** in the Flow tab:
 
 - **Copy** — grab the latest payload from the chat.
