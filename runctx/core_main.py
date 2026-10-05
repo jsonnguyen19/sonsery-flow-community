@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from .dispatcher import process_payload
+from .max_response import apply_max_response
 from .payload import load_payload
 
 
@@ -30,8 +31,13 @@ def main():
     # Process payload
     success, data_items, error_msg = process_payload(data)
 
+    # Optional payload `maxResponse`: trim bulk text and tell the AI what is missing
+    data_items, max_response_notice = apply_max_response(data, data_items)
+
     # Write output
     output = {"success": success, "data": data_items, "error": error_msg}
+    if max_response_notice:
+        output["max_response"] = max_response_notice
 
     with tmp_path.open("w", encoding="utf-8", newline="\n") as out:
         json.dump(output, out, ensure_ascii=False, indent=2)

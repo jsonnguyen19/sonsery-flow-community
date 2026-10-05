@@ -147,7 +147,9 @@ function buildEnvironmentContext(settings) {
   // instruction so the AI understands it as a constraint on its own reply.
   const maxLen = settings?.maxResponseLength || 0;
   if (maxLen > 0) {
-    parts.push(`the response payload must be under an estimated ${maxLen} tokens`);
+    parts.push(
+      `every payload must include "maxResponse": ${maxLen} (estimated tokens); if a result has "truncated", send a new payload for the rest`
+    );
   }
 
   if (parts.length === 0) return "";

@@ -223,54 +223,6 @@ Terminal=false
 
 ---
 
-## Pro & Community
-
-The repo you are reading is the **Pro build** — it ships with all Pro features.
-The **Community (MIT)** build is produced at build time by
-`scripts/split-community.sh` into a separate repo; it contains no Pro code in
-any form.
-
-| | Community (MIT) | Pro ($39 one-time) |
-|---|---|---|
-| Core automation (shell/read/replace/write) | ✅ | ✅ |
-| Adapters | chatgpt + claude + gemini + deepseek + fallback | all 13 |
-| Tabs | Flow, Stats (overview), History, Settings | + Project, Terminal, Skills |
-| License key | not needed | required (max 3 machines) |
-| Multi-agent switch, , @mention, mobile remote | ❌ | ✅ |
-| Firefox build | ❌ | ✅ |
-
-For the full split architecture see [`docs/split/0-overview.md`](docs/split/0-overview.md).
-
-### License (Pro)
-
-The Pro build has a runtime **license gate**: automation is paused when the
-stored key is `invalid` / `unlicensed` / `stale`. Enter / manage the key in the
-**Settings tab → License**. Storage key = `license` in `chrome.storage.local`.
-
-> The current build runs the license subsystem in **simulated mode**
-> (`SIMULATE = true` in `popup/license.js`) — no backend calls yet. Real API
-> integration (LemonSqueezy) is pending; see
-> [`docs/split/5-checklist.md`](docs/split/5-checklist.md) §12.
-
----
-
-## Firefox (Pro)
-
-Firefox needs a dedicated build folder:
-
-```bash
-pnpm ext:firefox        # produces runctx-extension-firefox/
-```
-
-Then load `runctx-extension-firefox/manifest.json` via
-`about:debugging#/runtime/this-firefox` → **Load Temporary Add-on**.
-
-See [`docs/dev/firefox.md`](docs/dev/firefox.md) for throttling tweaks
-(`about:config`) that make Firefox behave like Chrome, and how to move the
-sidebar to the right.
-
----
-
 ## Commands
 
 | Command | What it does |
@@ -280,14 +232,13 @@ sidebar to the right.
 | `./sync` | Sync prompts into the extension |
 | `pnpm about` | Print extension path, bridge ports, available commands |
 | `pnpm setup:dev` | Contributor setup (`.venv-test/` + dev deps) |
-| `pnpm ext:firefox` | Build the Firefox folder |
 
 ---
 
 ## Requirements
 
 - Python 3.8+
-- Chrome 100+ / Edge 100+ (Manifest V3), or Firefox (Pro build)
+- Chrome 100+ / Edge 100+ (Manifest V3)
 
 No GPU, no Docker, no admin rights needed.
 
@@ -314,9 +265,7 @@ Repo layout:
 - `watchctx.py` — entrypoint: clipboard watcher + HTTP bridge
 - `runctx_core.py` — entrypoint: payload processing
 - `runctx/` — main package
-- `runctx-extension/` — Chrome/Edge extension (Pro build)
-- `runctx-extension-firefox/` — Firefox build output (`pnpm ext:firefox`)
-- `mobile/` — mobile remote server (Pro)
+- `runctx-extension/` — Chrome/Edge extension
 - `scripts/` — setup scripts (see [`scripts/README.md`](scripts/README.md))
 - `scripts/split-community.sh` / `scripts/sync-community.sh` — Community repo
   build + sync (see [`docs/split/3-workflow.md`](docs/split/3-workflow.md))

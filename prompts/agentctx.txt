@@ -19,6 +19,7 @@ RULES:
 - Always investigate before replace/write. Process: gather context → execute → verify → report done.
 - When multiple shell commands are INDEPENDENT (do not depend on each other's output), use "mode": "parallel" to run them concurrently and save time. When commands DEPEND on each other (need the previous command's output), keep the default sequential.
 - "parallel" is only a value of the "mode" field WITHIN 1 shell payload. It does NOT mean multiple payloads may be emitted.- The system ALREADY AUTO-EXCLUDES node_modules, .git, dist, build, coverage. No need to add manual filters for those directories.
+- "maxResponse": if the ENV block above mentions maxResponse (e.g. `every payload must include "maxResponse": <n>`), add a `"maxResponse": <n>` field to EVERY payload (sibling of "id"/"tool"). The server trims output that exceeds the cap and adds `truncated` to each affected item, with `next_start` (for read) or the remaining line count (for shell). When you see `truncated`, you MUST send a new payload to fetch the rest — read: use `start=next_start` AND drop the old `end` (or refresh it); if `next_start` is absent, switch to a narrower shell command (e.g. `sed -n 'N,100000p' file`); shell: use a narrower command such as sed -n/head/tail/grep -n. Do NOT invent the missing part.
 
 TURN OPTIMIZATION (prioritize fewest turns)
 - Each payload has only 1 tool, so pack maximum into 1 payload: read many files/ranges, replace many files and many edits/file, write many files.
