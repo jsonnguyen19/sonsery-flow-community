@@ -1,4 +1,4 @@
-"""Tests for the Root Bar feature: root resolution, roots scan, git_root setter.
+"""Tests for root resolution (get_root, normalize_root_kind, set_active_root).
 
 Covers:
 - runctx/root.py: get_root(kind), normalize_root_kind, set_active_root.
@@ -63,21 +63,6 @@ def workspace(tmp_path, isolated_state):
 # ============ root.py ============
 
 
-def test_get_root_base_reads_pwd_file(workspace, isolated_state):
-    assert root_module.get_root(root_module.ROOT_BASE) == workspace
-
-
-def test_get_root_base_falls_back_to_package_root(isolated_state, monkeypatch):
-    # pwd file does not exist
-    monkeypatch.setattr(root_module, "PWD_FILE", isolated_state["dir"] / "nonexistent")
-    assert root_module.get_root(root_module.ROOT_BASE) == root_module.PACKAGE_ROOT
-
-
-def test_get_root_base_ignores_invalid_content(isolated_state):
-    isolated_state["pwd"].write_text("not-absolute-path", encoding="utf-8")
-    assert root_module.get_root(root_module.ROOT_BASE) == root_module.PACKAGE_ROOT
-
-
 def test_get_root_project_no_active(workspace):
     assert root_module.get_root(root_module.ROOT_PROJECT) == workspace
 
@@ -88,12 +73,12 @@ def test_get_root_project_uses_active_inside_base(workspace, isolated_state):
     assert root_module.get_root(root_module.ROOT_PROJECT) == active
 
 
-def test_get_root_project_ignores_active_outside_base(workspace, isolated_state, tmp_path):
+def test_get_root_project_honors_active_outside_base(workspace, isolated_state, tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
     isolated_state["active"].write_text(str(outside), encoding="utf-8")
-    # active lies outside base → fallback to base
-    assert root_module.get_root(root_module.ROOT_PROJECT) == workspace
+    # Permissive: an active root outside the base is still honored.
+    assert root_module.get_root(root_module.ROOT_PROJECT) == outside
 
 
 def test_get_root_project_ignores_missing_active(workspace, isolated_state):
@@ -133,20 +118,18 @@ def test_resolve_within_root_custom_base(workspace, tmp_path):
     assert resolved == (other / "sub").resolve()
 
 
-def test_resolve_within_root_rejects_escape_via_base(workspace, tmp_path):
+def test_resolve_within_root_allows_escape_via_base(workspace, tmp_path):
     other = tmp_path / "other"
     other.mkdir()
-    # '..' is still rejected before resolve
-    with pytest.raises(rpc_module.RpcError) as exc:
-        rpc_module._resolve_within_root("../x", base_root=other)
-    assert "parent traversal" in exc.value.message
+    # Permissive: '..' resolves normally against the base.
+    resolved = rpc_module._resolve_within_root("../x", base_root=other)
+    assert resolved == (other.parent / "x").resolve()
 
 
-def test_resolve_within_root_symlink_escape_rejected(workspace, tmp_path):
+def test_resolve_within_root_symlink_resolves(workspace, tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
     link = workspace / "evil"
     link.symlink_to(outside)
-    with pytest.raises(rpc_module.RpcError) as exc:
-        rpc_module._resolve_within_root("evil")
-    assert "escapes" in exc.value.message
+    # Permissive: symlink resolves to its target.
+    assert rpc_module._resolve_within_root("evil") == outside.resolve()

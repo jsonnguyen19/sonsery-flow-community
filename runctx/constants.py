@@ -54,7 +54,7 @@ CLIPBOARD_TIMEOUT = 2
 # instead of hardcoding the package parent (same as the clipboard flow).
 PWD_FILE = STATE_DIR / "watchctx.pwd"
 
-# Active root chosen by the user (must be inside base root).
+# Active root chosen by the user.
 ACTIVE_ROOT_FILE = STATE_DIR / "watchctx.active-root"
 
 # watchctx process files.
@@ -108,12 +108,19 @@ KILL_FINAL_WAIT = 1.0
 # Max wait for cleanup_all (used in the watcher finally block).
 CLEANUP_TIMEOUT = 10.0
 
+# ============ PATH BLOCKLIST (opt-in, empty by default) ============
+# Substrings matched against the RESOLVED path. If any entry is contained in
+# the resolved path string, the path is rejected.
+#
+# EMPTY by default -> NOTHING is blocked (every path is allowed).
+# To tighten later: add entries here (e.g. [".ssh", ".aws", "/etc"]).
+PATH_BLOCKLIST: list[str] = []
+
+
 # ============ ROOT KINDS ============
 
 # 3 root kinds, each with a resolver (see runctx/root.py).
 # - project: watchctx pwd/active-root (default for read/write/git tools).
 # - package: tool root (prompts/ @@ mentions) — independent of pwd.
-# - base:    watchctx pwd, ignores active-root.
 ROOT_PROJECT = "project"
 ROOT_PACKAGE = "package"
-ROOT_BASE = "base"

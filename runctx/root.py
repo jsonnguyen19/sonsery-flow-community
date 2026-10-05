@@ -6,7 +6,7 @@ root X but the tool reads against root Y).
 
 This module is the single source of truth for:
 - Paths of the state files (pwd, active-root).
-- Logic to read + validate the active root (must live inside the base root).
+- Logic to read the active root (permissive: no boundary check).
 - Root factory: get_root(kind) returns the root for a kind (project/package/base).
 
 Callers should NOT read PWD_FILE / ACTIVE_ROOT_FILE directly and should NOT
@@ -21,7 +21,6 @@ from pathlib import Path
 from .constants import (
     ACTIVE_ROOT_FILE,
     PWD_FILE,
-    ROOT_BASE,
     ROOT_PACKAGE,
     ROOT_PROJECT,
     STATE_DIR,
@@ -45,19 +44,6 @@ def _read_root_file(path: Path) -> Path | None:
     return None
 
 
-def _resolve_base() -> Path:
-    """Base root = the PWD of the running watchctx (ignoring active-root).
-
-    Internal resolver for ROOT_BASE. Callers outside this module ALWAYS use
-    get_root(ROOT_BASE) — do not import this function directly.
-
-    Falls back to PACKAGE_ROOT if watchctx.pwd is missing / invalid.
-    This is the root the user sees when choosing ". (workspace)".
-    """
-    pwd_root = _read_root_file(PWD_FILE)
-    return pwd_root if pwd_root is not None else PACKAGE_ROOT
-
-
 def _resolve_project() -> Path:
     """Current project root for all file/git/tree/search operations.
 
@@ -65,30 +51,22 @@ def _resolve_project() -> Path:
     get_root(ROOT_PROJECT) — do not import this function directly.
 
     Priority:
-    1. active-root (chosen by the user) — ONLY if it is inside the base root.
+    1. active-root (chosen by the user) — honored as-is, no boundary check.
     2. base root (the PWD of watchctx).
 
-    The check that active-root is inside the base root is defense-in-depth:
-    even though active-root validates before writing, if the file is
-    edited by hand or the base root changes (watchctx restart elsewhere), we
-    still cannot escape.
+    Permissive by design: an active root is returned even when it lies outside
+    the base root. Tighten via constants.PATH_BLOCKLIST if needed later.
     """
-    base = _resolve_base()
+    base = _read_root_file(PWD_FILE) or PACKAGE_ROOT
     active = _read_root_file(ACTIVE_ROOT_FILE)
     if active is None:
         return base
-    try:
-        if active.resolve().is_relative_to(base.resolve()):
-            return active
-    except OSError:
-        pass
-    return base
+    return active
 
 
 def set_active_root(target: Path | None) -> None:
     """Write the active-root file. `None` = reset to base root (delete the file).
 
-    The caller must validate that target is inside the base root BEFORE calling.
     This function does not validate — it only writes/deletes.
     """
     if target is None:
@@ -125,13 +103,23 @@ def _resolve_package() -> Path:
 #
 # - project: watchctx pwd/active-root (default for any read/write/git tool).
 # - package: tool root (prompts/ mention @@) — does NOT depend on pwd.
-# - base:    watchctx pwd, ignoring active-root.
 _ROOT_RESOLVERS: dict[str, Callable[[], Path]] = {
     ROOT_PROJECT: _resolve_project,
     ROOT_PACKAGE: _resolve_package,
-    ROOT_BASE: _resolve_base,
 }
 ROOT_KINDS = tuple(_ROOT_RESOLVERS)
+
+
+def _path_blocklisted(resolved_str: str, pattern: str) -> bool:
+    """True if `pattern` matches the resolved path.
+
+    Match rule: substring of the full resolved path string. This is
+    deliberately lenient — the blocklist is a coarse safety valve, empty by
+    default. Callers documenting a PATH_BLOCKLIST entry should use a
+    path-segment-ish substring (e.g. '/etc/' or '.ssh/') to avoid matching an
+    unrelated directory whose name merely contains the pattern.
+    """
+    return pattern in resolved_str
 
 
 def normalize_root_kind(value: object) -> str:
@@ -153,20 +141,54 @@ def get_root(kind: str = ROOT_PROJECT) -> Path:
 
 
 def resolve_tool_path(value: str, root_kind: str = ROOT_PROJECT) -> Path:
-    """Resolve a path for a file tool (stat/read/list/tree/search).
+    """Resolve a user-supplied path permissively (nothing blocked by default).
+
+    Supported formats:
+    - Relative: 'src/index.js'    → joined with the root
+    - Home:     '~/notes/todo.md' → '~' expanded to the user's home
+    - Absolute: '/any/where/x'    → used as-is
+    - Parent:   '../sibling/x'    → used as-is (resolved against the root only
+                                    when relative)
 
     root_kind:
-    - "project" (default): resolve against the project root (pwd/active-root).
-    - "package": resolve against PACKAGE_ROOT (the tool root), NOT tied to pwd.
-      Used for tool resources (e.g. prompts/).
+    - "project" (default): resolve relative paths against the project root
+      (pwd/active-root).
+    - "package": resolve relative paths against PACKAGE_ROOT (the tool root),
+      NOT tied to pwd. Used for tool resources (e.g. prompts/).
     Any other value → treated as "project".
 
-    Joins the path to the matching root → path relative inside the root.
-    Absolute/'..' will be blocked by the caller (safe_path / _resolve_within_root).
+    By default NOTHING is blocked. To tighten later, add substrings to
+    constants.PATH_BLOCKLIST; any resolved path containing one of those
+    substrings is rejected. The list is EMPTY today, so the blocking layer is
+    a no-op but ready to scale.
 
     Note on error handling: this function CAN raise OSError from resolve() when
-    the path is invalid or permission is denied. Callers (handle_stat,
-    handle_read_file, handle_list, handle_search) already catch OSError/Exception
-    and return {success: False, error: ...} to the client → no wrapping needed here.
+    the path is invalid or permission is denied. Callers already catch
+    OSError/Exception and return {success: False, error: ...} to the client →
+    no wrapping needed here.
     """
-    return get_root(normalize_root_kind(root_kind)) / value
+    import os
+
+    from .constants import PATH_BLOCKLIST
+
+    root = get_root(normalize_root_kind(root_kind))
+
+    # Expand '~' so the path points at the real location; other forms pass
+    # through untouched.
+    expanded = os.path.expanduser(value)
+    candidate = Path(expanded)
+
+    # Absolute paths are used as-is; relative paths are joined to the root.
+    resolved = candidate if candidate.is_absolute() else root / candidate
+
+    # Opt-in blocklist (empty by default -> no blocking).
+    if PATH_BLOCKLIST:
+        try:
+            resolved_str = str(resolved.resolve())
+        except OSError:
+            resolved_str = str(resolved)
+        for pattern in PATH_BLOCKLIST:
+            if pattern and _path_blocklisted(resolved_str, pattern):
+                raise ValueError(f"Path '{value}' is blocked by PATH_BLOCKLIST ({pattern})")
+
+    return resolved

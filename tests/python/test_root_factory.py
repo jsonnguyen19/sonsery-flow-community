@@ -22,7 +22,7 @@ def workspace(tmp_path, isolated_state):
 
 
 def test_root_kinds_registered():
-    assert set(root_module.ROOT_KINDS) == {"project", "package", "base"}
+    assert set(root_module.ROOT_KINDS) == {"project", "package"}
 
 
 def test_normalize_root_kind_only_package_selectable():
@@ -32,15 +32,6 @@ def test_normalize_root_kind_only_package_selectable():
     assert root_module.normalize_root_kind("weird") == "project"
     # 'base' is an internal root; the client cannot select it.
     assert root_module.normalize_root_kind("base") == "project"
-
-
-def test_get_root_dispatch_by_kind(workspace, isolated_state):
-    active = workspace / "sub"
-    isolated_state["active"].write_text(str(active), encoding="utf-8")
-
-    assert root_module.get_root("base") == workspace
-    assert root_module.get_root("project") == active
-    assert root_module.get_root("package") == root_module.PACKAGE_ROOT
 
 
 def test_get_root_default_is_project(workspace):
@@ -69,27 +60,6 @@ def test_resolve_tool_path_uses_factory(workspace):
 
 
 # ============ Client-khong-chon-duoc 'base' (rpc boundary) ============
-
-
-def test_rpc_validate_rejects_client_root_base(workspace, isolated_state):
-    """A client sending root='base' over rpc must NOT resolve against the base root.
-
-    normalize_root_kind maps 'base' → 'project'. So _validate_params_paths
-    must validate the path against the project root (active-root), not the base root.
-    Setup: active-root = workspace/sub, base = workspace.
-    Send path='./' (valid for both) — only checks it does not crash and goes
-    through the non-package branch (i.e. project), never ROOT_BASE.
-    """
-    active = workspace / "sub"
-    isolated_state["active"].write_text(str(active), encoding="utf-8")
-
-    # If the code were wrong (mapping 'base' → base root), path 'sub' would be
-    # treated as an escape since base root = workspace and 'sub' lives inside it
-    # — no error. This test asserts behavior via a clearer get_root dispatch:
-    kind = root_module.normalize_root_kind("base")
-    assert kind == root_module.ROOT_PROJECT
-    # And rpc._validate_params_paths must not raise with path '.' + root='base'
-    rpc_module._validate_params_paths("list", {"path": ".", "root": "base"})
 
 
 def test_rpc_validate_package_still_boundary_package_root(workspace):

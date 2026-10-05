@@ -1,75 +1,58 @@
 """Filesystem helpers: safe_path, read/write text, read_file_range."""
 
+import os
 import sys
-from pathlib import Path, PurePosixPath, PureWindowsPath
+from pathlib import Path
 from typing import Optional
-
-# Default excluded directories for search/read operations
-# (library/vendor code, build output, Python virtualenvs & tool caches)
-EXCLUDED_DIRS = {
-    "node_modules",
-    "vendor",
-    ".git",
-    "dist",
-    "build",
-    "coverage",
-    ".next",
-    "out",
-    # Python virtual environments
-    "venv",
-    ".venv",
-    ".venv-test",
-    "venv-test",
-    # Python caches / tooling
-    "__pycache__",
-    ".pytest_cache",
-    ".mypy_cache",
-    ".ruff_cache",
-    ".tox",
-    ".nox",
-    "htmlcov",
-    ".ipynb_checkpoints",
-}
-
-
-def _is_excluded_path(path: Path) -> bool:
-    """Check if path contains any excluded directory."""
-    return any(part in EXCLUDED_DIRS for part in path.parts)
-
-
-def is_absolute_path(value: str) -> bool:
-    """Cross-platform absolute check.
-
-    On Windows, Path('/etc/passwd').is_absolute() is False (no drive letter),
-    so also treat POSIX-style and rooted paths as absolute on every OS.
-    """
-    return (
-        Path(value).is_absolute()
-        or PurePosixPath(value).is_absolute()
-        or PureWindowsPath(value).is_absolute()
-        or value.startswith(("/", "\\"))
-    )
 
 
 def safe_path(value: str) -> Path:
-    """Validate path to prevent directory traversal and excluded dirs.
+    """Resolve a user-supplied path permissively (nothing blocked by default).
 
-    Default: only relative paths inside pwd are allowed; absolute paths, '..',
-    and excluded dirs (node_modules, venv, ...) are all blocked.
+    Supported formats:
+    - Relative:  'src/index.js'      -> returned as-is (resolved against CWD
+                                        by the downstream reader/writer).
+    - Home:      '~/notes/todo.md'   -> '~' expanded to the user's home.
+    - Absolute:  '/any/where/file'   -> accepted as-is.
+    - Parent:    '../sibling/x'      -> accepted (resolved against CWD).
+
+    By default NOTHING is blocked — every path is allowed. To tighten later,
+    add substrings to constants.PATH_BLOCKLIST; any resolved path containing
+    one of those substrings is then rejected. The list is EMPTY today, so the
+    blocking layer is a no-op but ready to scale.
+
+    Raises SystemExit(1) only on invalid input (empty) or a PATH_BLOCKLIST hit
+    (CLI contract: callers rely on exit-on-error).
     """
-    path = Path(value)
-    if is_absolute_path(value):
-        print(f"ERROR: absolute paths are not allowed: {value}")
+    from ..constants import PATH_BLOCKLIST
+
+    if not isinstance(value, str) or not value:
+        print("ERROR: path must be a non-empty string")
         sys.exit(1)
-    if ".." in path.parts:
-        print(f"ERROR: parent traversal is not allowed: {value}")
-        sys.exit(1)
-    if _is_excluded_path(path):
-        excluded_part = next(part for part in path.parts if part in EXCLUDED_DIRS)
-        print(f"ERROR: path contains excluded directory '{excluded_part}': {value}")
-        print("HINT: To access vendor/library code, use explicit shell command instead")
-        sys.exit(1)
-    return path
+
+    # Expand '~' so the path points at the real location; other forms pass
+    # through untouched. Relative paths stay relative (legacy CWD behavior).
+    is_home_ref = value == "~" or value.startswith("~/") or value.startswith("~\\")
+    if is_home_ref:
+        result = Path(os.path.expanduser(value))
+    else:
+        result = Path(value)
+
+    # Opt-in blocklist (empty by default -> no blocking). Matching is a plain
+    # substring test against the resolved path — see root._path_blocklisted.
+    if PATH_BLOCKLIST:
+        from ..root import _path_blocklisted
+
+        try:
+            resolved_str = str(result.resolve())
+        except OSError:
+            resolved_str = str(result)
+        for pattern in PATH_BLOCKLIST:
+            if pattern and _path_blocklisted(resolved_str, pattern):
+                print(f"ERROR: path is blocked by PATH_BLOCKLIST ({pattern}): {value}")
+                sys.exit(1)
+
+    return result
 
 
 def read_text(path: Path) -> str:

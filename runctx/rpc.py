@@ -5,6 +5,7 @@ Does not use the clipboard. Does not use state.py. Returns the result immediatel
 Separated from bridge.py to allow independent testing and to keep bridge.py thin.
 """
 
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -12,7 +13,6 @@ from .constants import RPC_TOOLS
 from .dispatcher import process_payload
 from .root import ROOT_PACKAGE, ROOT_PROJECT, normalize_root_kind
 from .root import get_root as _get_root
-from .utils.fs import EXCLUDED_DIRS, is_absolute_path
 
 
 class RpcError(Exception):
@@ -29,63 +29,46 @@ class RpcError(Exception):
 
 def _resolve_within_root(value: str, base_root: Optional[Path] = None) -> Path:
     # (base_root is passed by the caller per root_kind: package -> PACKAGE_ROOT)
-    """Validate + resolve a path inside the root. Returns the resolved ABSOLUTE path.
+    """Resolve a path permissively (nothing blocked by default).
 
-    base_root: the root to resolve against (default = get_root(ROOT_PROJECT), i.e. active root).
+    base_root: the root to resolve relative paths against (default =
+    the active project root).
 
-    Validation:
-    - relative (not absolute).
-    - no '..' in path parts.
-    - after resolve (including symlinks) the result must stay inside the root.
-    - must not contain EXCLUDED_DIRS.
+    Accepted formats: relative (joined to base_root), '~' (expanded), and
+    absolute (used as-is). By default NOTHING is blocked. To tighten later,
+    add substrings to constants.PATH_BLOCKLIST; any resolved path containing
+    one of those substrings is rejected.
 
-    Returns the resolved path (absolute, symlinks followed) so callers use
-    it consistently — avoiding callers concatenating root + raw and drifting apart.
+    Returns the resolved ABSOLUTE path so callers use it consistently.
 
     Differs from safe_path() in utils/fs.py (that one calls sys.exit; not for the server).
-    Raises RpcError(400) when invalid.
+    Raises RpcError(400) only on invalid input (empty) or a PATH_BLOCKLIST hit.
     """
+    from .constants import PATH_BLOCKLIST
+
     if not isinstance(value, str) or not value:
         raise RpcError(400, "'path' must be a non-empty string")
 
-    # base_root is explicitly provided by the caller (e.g. root="package" -> PACKAGE_ROOT,
-    # This is the caller's contract.
-    if base_root is not None:
-        raw = Path(value)
-        if is_absolute_path(value):
-            raise RpcError(400, f"absolute paths are not allowed: {value}")
-        if ".." in raw.parts:
-            raise RpcError(400, f"parent traversal is not allowed: {value}")
-        try:
-            resolved = (base_root / raw).resolve()
-        except OSError as exc:
-            raise RpcError(400, f"cannot resolve path: {exc}") from exc
-        if not resolved.is_relative_to(base_root):
-            raise RpcError(400, f"path escapes root: {value}")
-        if any(part in EXCLUDED_DIRS for part in raw.parts):
-            excluded = next(part for part in raw.parts if part in EXCLUDED_DIRS)
-            raise RpcError(400, f"path contains excluded directory '{excluded}': {value}")
-        return resolved
-
-    raw = Path(value)
-    if is_absolute_path(value):
-        raise RpcError(400, f"absolute paths are not allowed: {value}")
-    if ".." in raw.parts:
-        raise RpcError(400, f"parent traversal is not allowed: {value}")
-
-    root = _get_root(ROOT_PROJECT)
+    root = base_root if base_root is not None else _get_root(ROOT_PROJECT)
     try:
-        resolved = (raw if raw.is_absolute() else root / raw).resolve()
+        root_resolved = root.resolve()
+    except OSError as exc:
+        raise RpcError(400, f"cannot resolve root: {exc}") from exc
+
+    expanded = os.path.expanduser(value)
+    candidate = Path(expanded)
+    try:
+        resolved = (candidate if candidate.is_absolute() else root_resolved / candidate).resolve()
     except OSError as exc:
         raise RpcError(400, f"cannot resolve path: {exc}") from exc
 
-    if not resolved.is_relative_to(root):
-        raise RpcError(400, f"path escapes project root: {value}")
+    # Opt-in blocklist (empty by default -> no blocking). Matching is a plain
+    # substring test against the resolved path — see root._path_blocklisted.
+    from .root import _path_blocklisted
 
-    # Block excluded dirs (like safe_path) — unless the caller allows
-    if any(part in EXCLUDED_DIRS for part in raw.parts):
-        excluded = next(part for part in raw.parts if part in EXCLUDED_DIRS)
-        raise RpcError(400, f"path contains excluded directory '{excluded}': {value}")
+    for pattern in PATH_BLOCKLIST:
+        if pattern and _path_blocklisted(str(resolved), pattern):
+            raise RpcError(400, f"path is blocked by PATH_BLOCKLIST ({pattern}): {value}")
 
     return resolved
 
