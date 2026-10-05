@@ -15,7 +15,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 import yaml
 
 from .constants import RUNCTX_TOOLS
-from .max_response import validate_max_response
+from .max_lines import validate_max_lines
 from .utils.fence import extract_code_fence, strip_code_fence
 
 
@@ -145,7 +145,7 @@ def parse_runctx_payload(text: str) -> Tuple[Optional[Dict], str]:
     if tool not in RUNCTX_TOOLS:
         return None, f"Unsupported or missing tool: {tool!r}"
 
-    error = _TOOL_VALIDATORS[tool](data) or validate_max_response(data)
+    error = _TOOL_VALIDATORS[tool](data) or validate_max_lines(data)
     if error:
         return None, error
 

@@ -55,7 +55,7 @@ Implementation: `popup/history.js` + `popup/history.css`.
 
 ## Settings (`settings`)
 
-- **Environment** — `shell`, `techStack`, `packageManager`, `maxResponseLength`.
+- **Environment** — `shell`, `techStack`, `packageManager`, `maxLines`.
   Non-auto values are folded into a `[ENV: …]` block injected with prompts.
 - **Theme** — system / dark / light.
 - **Automation Speed** — slow / normal / fast / veryFast, plus a details modal

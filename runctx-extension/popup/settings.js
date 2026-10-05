@@ -97,16 +97,11 @@ function buildEnvironmentContext(settings, hostname) {
     if (pmName) parts.push(`pm=${pmName}`);
   }
 
-  // Add max response length limit if set (> 0). Phrased as a plain
-  // instruction so the AI understands it as a constraint on its own reply.
-  const maxLen = window.__RUNCTX_ENV__.resolveMaxResponse(
-    settings?.maxResponseLength,
-    hostname || ""
-  );
-  if (maxLen > 0) {
-    parts.push(
-      `every payload must include "maxResponse": ${maxLen} (estimated tokens); if a result has "truncated", send a new payload for the rest`
-    );
+  // Add max result lines limit if set (> 0). The sentence is built in
+  // utils/env-config.js so popup and content scripts stay identical.
+  const maxLines = window.__RUNCTX_ENV__.resolveMaxLines(settings?.maxLines, hostname || "");
+  if (maxLines > 0) {
+    parts.push(window.__RUNCTX_ENV__.getMaxLinesInstruction(maxLines));
   }
 
   if (parts.length === 0) return "";
@@ -123,8 +118,7 @@ async function updateSettingsFromUI() {
     shell: shellSelect?.value || "auto",
     techStack: techSelect?.value || "auto",
     packageManager: pmSelect?.value || "auto",
-    maxResponseLength:
-      maxLengthSelect?.value === "auto" ? "auto" : parseInt(maxLengthSelect?.value) || 0,
+    maxLines: maxLengthSelect?.value === "auto" ? "auto" : parseInt(maxLengthSelect?.value) || 0,
   };
 
   const existing = await getEnvSettings();
@@ -156,8 +150,9 @@ async function loadSettingsToUI() {
     pmSelect.value = settings.packageManager || "auto";
   }
   if (maxLengthSelect) {
-    const val = settings.maxResponseLength;
-    maxLengthSelect.value = val === "auto" ? "auto" : String(val || 0);
+    const val = settings.maxLines;
+    // Never saved = auto (same rule as resolveMaxLines in env-config.js).
+    maxLengthSelect.value = val == null || val === "auto" ? "auto" : String(val);
     // Force refresh select display
     maxLengthSelect.dispatchEvent(new Event("change", { bubbles: true }));
   }
