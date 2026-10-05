@@ -145,7 +145,7 @@ export default [
   {
     // Test files use ES modules (vitest) — placed AFTER the general block to
     // override sourceType: script into module.
-    files: ["runctx-extension/**/__tests__/**/*.js"],
+    files: ["runctx-extension/**/__tests__/**/*.js", "runctx-extension/**/__tests__/**/*.mjs"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",

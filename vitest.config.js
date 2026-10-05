@@ -5,6 +5,7 @@ export default defineConfig({
     environment: "node",
     include: [
       "runctx-extension/services/__tests__/**/*.test.js",
+      "runctx-extension/popup/__tests__/**/*.test.js",
     ],
   },
 });
