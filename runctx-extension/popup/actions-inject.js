@@ -34,7 +34,13 @@ function setupInjectButton() {
 
     const selected = injectSelect?.value || "agentctx";
     const settings = await getEnvSettings();
-    const envContext = buildEnvironmentContext(settings);
+    let hostname = "";
+    try {
+      hostname = tab?.url ? new URL(tab.url).hostname : "";
+    } catch {
+      hostname = "";
+    }
+    const envContext = buildEnvironmentContext(settings, hostname);
 
     let contextText = "";
     let label = "";

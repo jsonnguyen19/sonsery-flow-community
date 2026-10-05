@@ -61,6 +61,7 @@
         "utils/toast.js",
         "utils/sound.js",
         "utils/logger.js",
+        "utils/env-config.js",
         "transports/clipboard.js",
         "transports/http-bridge.js",
         "adapters/chatgpt.js",

@@ -74,59 +74,13 @@ async function saveEnvSettings(settings) {
   await chrome.storage.local.set({ [SETTINGS_KEY]: settings });
 }
 
-function getShellDisplay(shell) {
-  const map = {
-    auto: "Auto-detect",
-    bash: "Bash",
-    zsh: "Zsh",
-    powershell: "PowerShell",
-    cmd: "CMD",
-    gitbash: "Git Bash",
-  };
-  return map[shell] || shell;
-}
+// Display maps + max-response constants live in utils/env-config.js
+// (single source of truth, shared across popup and content scripts).
+const getShellDisplay = (shell) => window.__RUNCTX_ENV__.getShellDisplay(shell);
+const getTechDisplay = (tech) => window.__RUNCTX_ENV__.getTechDisplay(tech);
+const getPmDisplay = (pm) => window.__RUNCTX_ENV__.getPmDisplay(pm);
 
-function getTechDisplay(tech) {
-  const map = {
-    auto: "Auto-detect",
-    node: "Node.js",
-    react: "React",
-    vue: "Vue",
-    angular: "Angular",
-    python: "Python",
-    dotnet: ".NET",
-    go: "Go",
-    rust: "Rust",
-    java: "Java",
-    php: "PHP",
-    ruby: "Ruby",
-    other: "Other",
-  };
-  return map[tech] || tech;
-}
-
-function getPmDisplay(pm) {
-  const map = {
-    auto: "Auto-detect",
-    npm: "npm",
-    pnpm: "pnpm",
-    yarn: "yarn",
-    pip: "pip",
-    poetry: "poetry",
-    pipenv: "pipenv",
-    dotnet: "dotnet",
-    go: "go mod",
-    cargo: "cargo",
-    gradle: "gradle",
-    maven: "maven",
-    composer: "composer",
-    bundler: "bundler",
-    other: "Other",
-  };
-  return map[pm] || pm;
-}
-
-function buildEnvironmentContext(settings) {
+function buildEnvironmentContext(settings, hostname) {
   const parts = [];
 
   // Only add if NOT auto and value exists
@@ -145,7 +99,10 @@ function buildEnvironmentContext(settings) {
 
   // Add max response length limit if set (> 0). Phrased as a plain
   // instruction so the AI understands it as a constraint on its own reply.
-  const maxLen = settings?.maxResponseLength || 0;
+  const maxLen = window.__RUNCTX_ENV__.resolveMaxResponse(
+    settings?.maxResponseLength,
+    hostname || ""
+  );
   if (maxLen > 0) {
     parts.push(
       `every payload must include "maxResponse": ${maxLen} (estimated tokens); if a result has "truncated", send a new payload for the rest`
@@ -166,7 +123,8 @@ async function updateSettingsFromUI() {
     shell: shellSelect?.value || "auto",
     techStack: techSelect?.value || "auto",
     packageManager: pmSelect?.value || "auto",
-    maxResponseLength: parseInt(maxLengthSelect?.value) || 0,
+    maxResponseLength:
+      maxLengthSelect?.value === "auto" ? "auto" : parseInt(maxLengthSelect?.value) || 0,
   };
 
   const existing = await getEnvSettings();
@@ -198,8 +156,8 @@ async function loadSettingsToUI() {
     pmSelect.value = settings.packageManager || "auto";
   }
   if (maxLengthSelect) {
-    const val = settings.maxResponseLength || 0;
-    maxLengthSelect.value = String(val);
+    const val = settings.maxResponseLength;
+    maxLengthSelect.value = val === "auto" ? "auto" : String(val || 0);
     // Force refresh select display
     maxLengthSelect.dispatchEvent(new Event("change", { bubbles: true }));
   }

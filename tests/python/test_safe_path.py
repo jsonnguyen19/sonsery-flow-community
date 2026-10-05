@@ -35,7 +35,11 @@ class TestSafePathPermissive:
     def test_home_expansion_resolves(self, monkeypatch, tmp_path):
         fake_home = tmp_path / "fake-home"
         fake_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HOME", str(fake_home))
+        # Patch expanduser directly: on Windows it reads USERPROFILE, not HOME.
+        monkeypatch.setattr(
+            "os.path.expanduser",
+            lambda p: str(p).replace("~", str(fake_home), 1),
+        )
         from runctx.utils import fs as fs_module
 
         resolved = fs_module.safe_path("~/notes.txt")
