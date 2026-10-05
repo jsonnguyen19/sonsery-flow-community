@@ -9,7 +9,7 @@ requests>=2.28.0
 # Lint + format (PINNED: ruff >= 0.17 starts formatting python fences
 # inside .md files, which drifts from what CI/local expect. Keep all
 # OSes on the same version to avoid matrix-only failures.)
-ruff==0.16.9
+ruff==0.16.10
 
 # Type checker
 basedpyright>=1.40.0
