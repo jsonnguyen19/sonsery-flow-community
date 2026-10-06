@@ -244,6 +244,26 @@ No GPU, no Docker, no admin rights needed.
 
 ---
 
+## Documentation
+
+Full docs live in [`docs/community/`](docs/community/).
+
+| Doc | What it covers |
+|---|---|
+| [`README.md`](README.md) | This file — overview + setup |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution guide |
+| [`CHANGELOG.md`](CHANGELOG.md) | Release notes |
+| [`SECURITY.md`](SECURITY.md) | Security policy |
+| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Community code of conduct |
+| [`scripts/README.md`](scripts/README.md) | Every script in `scripts/` |
+| [`docs/community/getting-started.md`](docs/community/getting-started.md) | Install the backend + extension, run the first automation loop, day-to-day usage |
+| [`docs/community/tools.md`](docs/community/tools.md) | Payload & response format for `shell` / `read` / `replace` / `write` |
+| [`docs/community/tabs.md`](docs/community/tabs.md) | The 4 side-panel tabs and what each one does |
+| [`docs/community/adapters.md`](docs/community/adapters.md) | The 5 Community AI adapters + how to debug/add one |
+| [`docs/community/architecture.md`](docs/community/architecture.md) | How the content script, watcher, and bridge fit together |
+
+---
+
 ## Links
 
 - **Website / Landing page** — <https://sonseryflow.vercel.app/>
@@ -258,7 +278,7 @@ No GPU, no Docker, no admin rights needed.
 ## Contributing
 
 Contributor / dev setup (dev venv, lint, format, typecheck, tests) lives in
-[`docs/dev/setup.md`](docs/dev/setup.md). End-users never need it.
+[`CONTRIBUTING.md`](CONTRIBUTING.md). End-users never need it.
 
 Repo layout:
 
