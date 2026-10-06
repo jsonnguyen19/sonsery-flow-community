@@ -25,6 +25,19 @@ window.__RUNCTX__.AdapterRegistry = {
     return "unknown";
   },
 
+  // Conversation id for the active adapter (host-specific URL pattern).
+  // Each adapter declares its own getSessionId(); the fallback adapter has
+  // none, so this returns null on an unknown host. Used to tag history rows
+  // with the conversation they came from.
+  getCurrentSessionId() {
+    const adapter = this.getCurrentAdapter();
+    try {
+      return adapter?.getSessionId?.() || null;
+    } catch {
+      return null;
+    }
+  },
+
   getChatInput() {
     const adapter = this.getCurrentAdapter();
     const adapterInput = adapter.getChatInput?.();

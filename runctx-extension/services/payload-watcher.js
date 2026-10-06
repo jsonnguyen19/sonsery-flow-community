@@ -66,6 +66,15 @@ window.__RUNCTX__.PayloadWatcher = {
       }
     } catch {}
 
+    // Chat tracking: tag the next history row with this tab's conversation id.
+    // Sent BEFORE the clipboard write so the watcher can read it in time
+    // (TTL 5s). Uses its own endpoint (/chat) and message type
+    // (RUNCTX_BRIDGE_CHAT). Best-effort: errors never block the copy flow.
+    try {
+      const chatId = window.__RUNCTX__.getCurrentSessionId?.() || null;
+      chrome.runtime.sendMessage({ type: "RUNCTX_BRIDGE_CHAT", chatId });
+    } catch {}
+
     const copied = await window.__RUNCTX__.ClipboardTransport.write(stablePayload.payload);
     if (!copied) {
       const showToastsState = await chrome.storage.local.get(["showToasts"]);

@@ -256,6 +256,13 @@ def main() -> int:
                     write_hash(LAST_INPUT_HASH_FILE, current_hash)
 
                     _print_payload_preview(payload)
+                    # Same reason: snapshot the chat id BEFORE run_runctx. A slow
+                    # payload (e.g. shell) would otherwise outlive the 5s TTL and
+                    # lose its conversation tag.
+                    try:
+                        _origin_chat_id = _history.get_current_chat_id()
+                    except Exception:
+                        _origin_chat_id = None
 
                     _run_started_at = time.time()
                     code, output = run_runctx(payload)
@@ -279,6 +286,7 @@ def main() -> int:
                             result_preview=output if success else (output or "Command failed"),
                             status="success" if success else "error",
                             duration_ms=_run_duration_ms,
+                            chat_id=_origin_chat_id,
                         )
                     except Exception as _hist_exc:
                         print(f"WARN: history append failed: {_hist_exc}")

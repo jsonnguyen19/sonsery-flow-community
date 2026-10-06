@@ -252,6 +252,77 @@
   opacity: 0.6;
 }
 
+/* ============ CHAT FILTER ============ */
+
+.hist-chat-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.hist-chat-filter-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 26px;
+  padding: 0 8px;
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 24px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.hist-chat-filter-input::placeholder {
+  color: var(--text-mute);
+}
+
+.hist-chat-filter-input:focus {
+  border-color: var(--accent);
+}
+
+.hist-chat-filter-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-mute);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.hist-chat-filter-clear:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+/* Small chat-id chip shown at the head of a row's summary when present. */
+.hist-chat-pill {
+  display: inline-block;
+  padding: 0 5px;
+  margin-right: 2px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--accent);
+  vertical-align: baseline;
+}
+
 /* ============ ACTIONS ============ */
 
 .hist-actions {

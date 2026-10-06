@@ -12,11 +12,16 @@ Row schema (stored to file):
   "id": int (payload id),
   "ts": int (unix ms when written),
   "tool": str,
+  "chat_id": str|None (opaque conversation id the payload belongs to),
   "payload": str (FULL payload, capped at HISTORY_FULL_CHARS),
   "result": str (FULL output, capped at HISTORY_FULL_CHARS),
   "status": "success"|"error",
   "duration_ms": int,
 }
+
+chat_id groups payloads of one conversation (e.g. one AI chat URL session)
+so they can be listed / replayed together. It is metadata only: filtering
+happens in list_rows(chat_id=...) and does NOT change the ring-buffer order.
 
 - list_rows() returns a 300-char preview (fields 'summary' + 'result_preview')
   to avoid an RPC response > 100KB when there are many rows.
@@ -44,6 +49,45 @@ from .constants import (
 
 _lock = threading.Lock()
 _cache: list[dict[str, Any]] | None = None
+
+# ============ CURRENT CHAT ID ============
+# The conversation id that the NEXT history row should be tagged with. Set by
+# the extension via POST /chat right before it copies a payload; read by the
+# watcher when it appends a row. It lives here so the chat feature is
+# available in every build.
+#
+# In-memory only + short TTL: the value only needs to survive from the copy
+# action to the watcher append (a few seconds), and it must never leak a stale
+# conversation into an unrelated payload run much later.
+ORIGIN_TTL_MS = 5_000
+
+_chat_lock = threading.Lock()
+_current_chat: dict[str, Any] = {"chat_id": None, "ts": 0}
+
+
+def set_current_chat_id(chat_id: str | None) -> str | None:
+    """Store the current conversation id (trimmed, capped at 256 chars).
+
+    None or empty clears it. Returns the stored value (or None when cleared).
+    """
+    clean = str(chat_id or "").strip()[:256] or None
+    with _chat_lock:
+        global _current_chat
+        _current_chat = {"chat_id": clean, "ts": int(time.time() * 1000)}
+    return clean
+
+
+def get_current_chat_id(max_age_ms: int = ORIGIN_TTL_MS) -> str | None:
+    """Return the current chat id if set within the TTL, otherwise None."""
+    with _chat_lock:
+        chat_id = _current_chat.get("chat_id")
+        ts = int(_current_chat.get("ts") or 0)
+    if not chat_id or ts <= 0:
+        return None
+    age_ms = int(time.time() * 1000) - ts
+    if age_ms > max_age_ms:
+        return None
+    return str(chat_id)
 
 
 # ============ CAP CONFIG ============
@@ -132,6 +176,7 @@ def append(
     result_preview: str,
     status: str,
     duration_ms: int,
+    chat_id: str | None = None,
 ) -> None:
     """Add one row at the head of history (newest first). Rotate when over cap.
 
@@ -141,10 +186,12 @@ def append(
     Best-effort: any IO error is swallowed, never raised outward.
     """
     ts = int(time.time() * 1000)
+    clean_chat = str(chat_id or "").strip()[:256] or None
     row: dict[str, Any] = {
         "id": payload_id if isinstance(payload_id, int) else ts,
         "ts": ts,
         "tool": str(tool or "unknown")[:64],
+        "chat_id": clean_chat,
         "payload": (payload_preview or "")[:HISTORY_FULL_CHARS],
         "result": (result_preview or "")[:HISTORY_FULL_CHARS],
         "status": "success" if status == "success" else "error",
@@ -168,6 +215,7 @@ def _to_preview_row(row: dict[str, Any]) -> dict[str, Any]:
         "id": row.get("id"),
         "ts": row.get("ts"),
         "tool": row.get("tool"),
+        "chat_id": row.get("chat_id"),
         "summary": (row.get("payload") or "")[:HISTORY_PREVIEW_CHARS],
         "status": row.get("status"),
         "result": (row.get("result") or "")[:HISTORY_PREVIEW_CHARS],
@@ -175,16 +223,28 @@ def _to_preview_row(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def list_rows(limit: int = 50, offset: int = 0) -> dict[str, Any]:
+def list_rows(
+    limit: int = 50,
+    offset: int = 0,
+    chat_id: str | None = None,
+) -> dict[str, Any]:
     """Return a list of preview rows (summary + result truncated to 300 chars).
 
     Does not return full payload/result, avoiding an RPC response > 100KB.
     limit clamped 1..200. offset >= 0.
+
+    chat_id: when provided (non-empty), only rows whose row.chat_id matches
+    are returned. 'total' then reflects the MATCHED count (not the whole ring
+    buffer), so pagination is correct for a filtered view. When chat_id is
+    None/empty, behaviour is unchanged (all rows).
     """
     limit = max(1, min(int(limit), 200))
     offset = max(0, int(offset))
+    want_chat = str(chat_id or "").strip() or None
     with _lock:
         rows = list(_load_locked())
+    if want_chat is not None:
+        rows = [r for r in rows if str(r.get("chat_id") or "") == want_chat]
     total = len(rows)
     sliced = [_to_preview_row(r) for r in rows[offset : offset + limit]]
     return {
@@ -193,6 +253,7 @@ def list_rows(limit: int = 50, offset: int = 0) -> dict[str, Any]:
         "offset": offset,
         "limit": limit,
         "cap": _read_cap(),
+        "chat_id": want_chat,
         "rows": sliced,
     }
 

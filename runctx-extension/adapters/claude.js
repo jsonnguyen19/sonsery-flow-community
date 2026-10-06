@@ -30,6 +30,9 @@ function isEnabledButton(el) {
 window.__RUNCTX__.AppAdapters.claude = {
   matches: () => location.hostname.includes("claude.ai"),
 
+  // Conversation id from the URL: /chat/<uuid> -> <uuid>.
+  getSessionId: () => (location.pathname.match(/\/chat\/([a-z0-9-]+)/i) || [])[1] || null,
+
   getChatInput: () => {
     // Generic fallback selector list. It may be overridden at the bottom of
     // this file (via Object.assign) with a ProseMirror-anchored selector.

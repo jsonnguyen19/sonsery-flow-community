@@ -9,6 +9,9 @@ window.__RUNCTX__.AppAdapters = window.__RUNCTX__.AppAdapters || {};
 window.__RUNCTX__.AppAdapters.chatgpt = {
   matches: () => location.hostname.includes("chatgpt.com"),
 
+  // Conversation id from the URL: /c/<uuid> -> <uuid>.
+  getSessionId: () => (location.pathname.match(/\/c\/([a-z0-9-]+)/i) || [])[1] || null,
+
   getBusyReason: () => {
     const busySelectors = [
       '[data-testid="stop-button"]',

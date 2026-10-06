@@ -61,12 +61,15 @@ def _dispatch_write(payload: Dict[str, Any]) -> Result:
 def _dispatch_get_history(payload: Dict[str, Any]) -> Result:
     limit = payload.get("limit", 50)
     offset = payload.get("offset", 0)
+    chat_id = payload.get("chat_id")
     try:
         limit = int(limit)
         offset = int(offset)
     except (TypeError, ValueError):
         return False, [], "get_history: 'limit'/'offset' must be integers"
-    result = _history.list_rows(limit=limit, offset=offset)
+    if chat_id is not None and not isinstance(chat_id, str):
+        return False, [], "get_history: 'chat_id' must be a string when provided"
+    result = _history.list_rows(limit=limit, offset=offset, chat_id=chat_id)
     return True, [result], None
 
 

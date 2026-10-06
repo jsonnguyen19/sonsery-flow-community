@@ -235,6 +235,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message?.type === "RUNCTX_BRIDGE_CHAT") {
+    // Shared Pro+Community: tag the next history row with this chat id.
+    proxyBridgeJson("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: message.chatId || null }),
+    }).then(sendResponse);
+    return true;
+  }
+
   if (message?.type === "RUNCTX_BRIDGE_RPC") {
     const tool = message.tool;
     const params = message.params || {};

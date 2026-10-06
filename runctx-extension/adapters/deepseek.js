@@ -4,6 +4,9 @@ window.__RUNCTX__.AppAdapters = window.__RUNCTX__.AppAdapters || {};
 window.__RUNCTX__.AppAdapters.deepseek = {
   matches: () => location.hostname.includes("chat.deepseek.com"),
 
+  // Conversation id from the URL: /a/chat/s/<uuid> -> <uuid>.
+  getSessionId: () => (location.pathname.match(/\/s\/([a-f0-9-]+)/i) || [])[1] || null,
+
   getBusyReason: () => {
     const busySelectors = [
       'div[role="button"].ds-button[aria-label*="Stop"]',

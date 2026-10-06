@@ -116,6 +116,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
             self._handle_rpc()
             return
 
+        if self.path.startswith("/chat"):
+            self._handle_chat()
+            return
+
         if self.path.startswith("/shutdown"):
             self._handle_shutdown()
             return
@@ -138,6 +142,22 @@ class BridgeHandler(BaseHTTPRequestHandler):
         if not isinstance(payload, dict):
             return None, "body must be an object"
         return payload, None
+
+    def _handle_chat(self) -> None:
+        """POST /chat: store the current conversation id for the next payload.
+
+        Body: {chat_id: "<session id>"} (or {"chat_id": null} to clear).
+        The watcher reads it when appending a history row so payloads can be
+        grouped/searched per chat.
+        """
+        payload, err = self._read_json_body()
+        if err is not None:
+            self.send_json({"success": False, "data": None, "error": err}, status=400)
+            return
+        from . import history as _history
+
+        chat_id = _history.set_current_chat_id(payload.get("chat_id"))
+        self.send_json({"success": True, "data": {"chat_id": chat_id}, "error": None}, status=200)
 
     def _handle_shutdown(self) -> None:
         """POST /shutdown: reply 204 first, then send SIGTERM to this process.

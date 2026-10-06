@@ -36,8 +36,10 @@ window.__RUNCTX__.RpcClient = {
 
   // ===== Payload history =====
 
-  getHistory(limit = 50, offset = 0) {
-    return this.call("get_history", { limit, offset });
+  getHistory(limit = 50, offset = 0, chatId = null) {
+    const params = { limit, offset };
+    if (chatId) params.chat_id = chatId;
+    return this.call("get_history", params);
   },
 
   getHistoryDetail(id, ts) {

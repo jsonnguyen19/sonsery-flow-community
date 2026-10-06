@@ -13,11 +13,14 @@
   const CAP_DEFAULT = 100;
   const CAP_MIN = 20;
   const CAP_MAX = 1000;
-  const LIST_LIMIT = 50;
+  const LIST_LIMIT = 200;
 
   let _listCache = [];
   let _expandedKey = null; // `${id}:${ts}` of the row with an open detail
   let _loading = false;
+  // Active chat_id filter. Empty string = show all rows. Read from the
+  // #histChatFilter input; applied server-side via RpcClient.getHistory.
+  let _chatFilter = "";
 
   function _keyOf(row) {
     return `${row.id}:${row.ts}`;
@@ -73,7 +76,19 @@
 
     const summary = document.createElement("span");
     summary.className = "hist-summary";
-    summary.textContent = row.summary || "";
+    // Prefix the chat id (short) so a filtered list is easy to scan, but keep
+    // the payload summary as the dominant text.
+    if (row.chat_id) {
+      const cid = document.createElement("span");
+      cid.className = "hist-chat-pill";
+      cid.textContent = _shortChat(row.chat_id);
+      cid.title = `Chat: ${row.chat_id}`;
+      summary.appendChild(cid);
+      summary.appendChild(document.createTextNode(" "));
+    }
+    const sumText = document.createElement("span");
+    sumText.textContent = row.summary || "";
+    summary.appendChild(sumText);
     if (row.summary) summary.title = row.summary;
 
     head.appendChild(dot);
@@ -86,6 +101,14 @@
 
     head.addEventListener("click", () => _toggleDetail(wrap, row));
     return wrap;
+  }
+
+  // Compact chat id for the row: keep the tail (session ids are often UUIDs;
+  // the distinguishing part is usually at the end).
+  function _shortChat(id) {
+    const s = String(id || "");
+    if (s.length <= 10) return s;
+    return `…${s.slice(-8)}`;
   }
 
   async function _toggleDetail(wrap, row) {
@@ -174,11 +197,14 @@
     listEl.appendChild(frag);
   }
 
-  function _updateHeader(total, cap) {
+  function _updateHeader(total, cap, filtered) {
     const countEl = document.getElementById("histCount");
     const capEl = document.getElementById("histCapLabel");
     if (countEl) countEl.textContent = String(total ?? 0);
-    if (capEl) capEl.textContent = `cap ${cap ?? CAP_DEFAULT}`;
+    if (capEl) {
+      const base = `cap ${cap ?? CAP_DEFAULT}`;
+      capEl.textContent = filtered ? `${base} · filtered` : base;
+    }
   }
 
   async function loadHistory() {
@@ -188,20 +214,20 @@
       const Rpc = _getRpc();
       if (!Rpc) {
         _renderList([]);
-        _updateHeader(0, CAP_DEFAULT);
+        _updateHeader(0, CAP_DEFAULT, false);
         return;
       }
-      const res = await Rpc.getHistory(LIST_LIMIT, 0);
+      const res = await Rpc.getHistory(LIST_LIMIT, 0, _chatFilter || null);
       if (!res || !res.ok) {
         _renderList([]);
-        _updateHeader(0, CAP_DEFAULT);
+        _updateHeader(0, CAP_DEFAULT, false);
         return;
       }
       const payload = res.data?.data?.[0];
       const rows = Array.isArray(payload?.rows) ? payload.rows : [];
       _listCache = rows;
       _renderList(rows);
-      _updateHeader(payload?.total ?? rows.length, payload?.cap ?? CAP_DEFAULT);
+      _updateHeader(payload?.total ?? rows.length, payload?.cap ?? CAP_DEFAULT, !!payload?.chat_id);
     } finally {
       _loading = false;
     }
@@ -285,14 +311,53 @@
     if (refreshBtn) refreshBtn.addEventListener("click", loadHistory);
     if (clearBtn) clearBtn.addEventListener("click", _clearAll);
 
+    // Chat filter: type an id -> filter rows server-side. Enter applies
+    // immediately; clearing the input resets to the full list.
+    const chatInput = document.getElementById("histChatFilter");
+    if (chatInput) {
+      chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          _applyChatFilter(chatInput.value);
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          chatInput.value = "";
+          _applyChatFilter("");
+        }
+      });
+      chatInput.addEventListener("input", () => {
+        // Live reset when the input becomes empty; otherwise wait for Enter so
+        // we do not spam the bridge on every keystroke.
+        if (!chatInput.value.trim() && _chatFilter) _applyChatFilter("");
+      });
+    }
+
+    const chatClearBtn = document.getElementById("histChatClearBtn");
+    if (chatClearBtn) {
+      chatClearBtn.addEventListener("click", () => {
+        const inp = document.getElementById("histChatFilter");
+        if (inp) inp.value = "";
+        _applyChatFilter("");
+      });
+    }
+
     setupHistorySettings();
 
     // Load the cap into the settings input on startup.
     setTimeout(_loadCapToSettings, 200);
   }
 
+  function _applyChatFilter(raw) {
+    const next = String(raw || "").trim();
+    if (next === _chatFilter) return;
+    _chatFilter = next;
+    loadHistory();
+  }
+
   // Expose
   window.__RUNCTX_POPUP__ = window.__RUNCTX_POPUP__ || {};
   window.__RUNCTX_POPUP__.setupHistoryTab = setupHistoryTab;
   window.__RUNCTX_POPUP__.loadHistory = loadHistory;
+  window.__RUNCTX_POPUP__.setChatFilter = _applyChatFilter;
+  window.__RUNCTX_POPUP__.getChatFilter = () => _chatFilter;
 })();

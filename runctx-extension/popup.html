@@ -400,6 +400,39 @@
           </div>
         </div>
 
+        <div class="hist-chat-filter">
+          <input
+            id="histChatFilter"
+            class="hist-chat-filter-input"
+            type="text"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Filter by chat id…"
+            title="Type a chat id and press Enter to list only payloads from that chat"
+          />
+          <button
+            id="histChatClearBtn"
+            class="hist-chat-filter-clear"
+            type="button"
+            title="Clear chat filter"
+            aria-label="Clear chat filter"
+          >
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
         <div class="hist-actions">
           <button id="histRefreshBtn" class="action-btn hist-action-btn" title="Refresh">
             <svg

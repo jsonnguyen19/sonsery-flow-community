@@ -4,6 +4,9 @@ window.__RUNCTX__.AppAdapters = window.__RUNCTX__.AppAdapters || {};
 window.__RUNCTX__.AppAdapters.gemini = {
   matches: () => location.hostname.includes("gemini.google.com"),
 
+  // Conversation id from the URL: /app/<hex> -> <hex>.
+  getSessionId: () => (location.pathname.match(/\/app\/([a-z0-9]+)/i) || [])[1] || null,
+
   getChatInput: () => {
     const selectors = [
       'div.ql-editor[contenteditable="true"]',

@@ -149,6 +149,22 @@ loadState();
 //
 window.__RUNCTX__ = window.__RUNCTX__ || {};
 
+// Get the conversation/session id for the active AI tab.
+// Delegates to the matched adapter (each adapter knows its own URL shape).
+// Generic fallbacks cover an unknown host / a new URL variant.
+// (that block is stripped; this helper is a shared feature).
+function getCurrentSessionId() {
+  const fromAdapter = window.__RUNCTX__.AdapterRegistry?.getCurrentSessionId?.();
+  if (fromAdapter) return fromAdapter;
+  // Host-agnostic fallback — common conversation URL shapes.
+  for (const re of [/\/c\/([a-z0-9-]+)/i, /\/chat\/([a-z0-9-]+)/i, /\/s\/([a-f0-9-]+)/i]) {
+    const m = location.pathname.match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+window.__RUNCTX__.getCurrentSessionId = getCurrentSessionId;
+
 let payloadTickRunning = false;
 let resultTickRunning = false;
 
