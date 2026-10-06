@@ -149,10 +149,19 @@ If you see the result come back, **setup is complete**. 🎉
 
 ## Bonus — a dedicated background Chrome for coding
 
-**Recommended.** Chrome throttles timers, freezes tabs, and sleeps background
-windows by default — this can pause the automation loop when the AI tab loses
-focus. Launch Chrome with a separate profile and the flags below so the loop
-keeps running when minimized or unfocused.
+**Strongly recommended for daily use.** Two reasons:
+
+1. **Chrome throttles background tabs.** By default Chrome slows timers,
+   freezes inactive tabs, and sleeps background windows. The automation loop
+   needs the AI tab to stay *awake* — when it loses focus, the loop can stall.
+2. **The loop only runs while its Chrome instance is active.** If you reuse
+   your everyday Chrome and then switch away to do other work, the AI tab is
+   deprioritised and the loop pauses. Isolating the agent in its **own Chrome
+   profile, launched in the background**, lets you keep using your main Chrome
+   normally while the agent keeps working.
+
+Launch Chrome with a separate profile and the flags below so the loop keeps
+running when minimized or unfocused.
 
 ```bash
 # macOS example
@@ -169,6 +178,69 @@ for Windows (PowerShell) and Linux (`.desktop`) variants.
 
 > **Tip:** Install the extension into this dedicated profile once. Keep the
 > window minimized — the loop keeps running.
+
+---
+
+## Usage — driving the loop day to day
+
+Setup is done once. This section is what you actually do **every session**.
+
+### 1. Open the AI site and enable automation
+
+1. In your browser (Chrome or Edge — one of the AI sites the Community build
+   supports: **ChatGPT, Claude, Gemini, DeepSeek**), open the chat tab you want
+   to work with.
+2. Click the pinned Sonsery Flow icon → the side panel opens on the **Flow** tab.
+3. **Pin this tab** so automation is scoped to it (recommended when you keep
+   other AI tabs open).
+4. Flip the **Automation** toggle **ON**.
+
+### 2. Inject the instructions into the chat
+
+Click **Inject context** in the Flow tab. This drops the `agentctx` prompt into
+ the chat composer — it is the contract that teaches the AI the payload protocol
+(`id`, `tool`, `shell` / `read` / `replace` / `write`, how to reply). Without
+this step the AI has no idea what a "payload" is.
+
+- **DeepSeek** — inject directly in a normal chat. DeepSeek keeps the context
+  reliably across turns, so a fresh tab is fine.
+- **ChatGPT** — create a dedicated **Project** (left sidebar → New project) and
+  paste the injected instructions into the Project's instructions field **once**.
+  Every chat inside that project then starts with the protocol already loaded,
+  and you avoid re-injecting on every new chat.
+
+### 3. Start the session with a task
+
+After the instructions are in place, **move to a new line** and type:
+
+```
+Give me a payload to do this task: <describe the task here>
+```
+
+e.g. `Give me a payload to do this task: read README.md and list the setup steps`.
+
+Two things happen at once:
+
+- The AI answers with a first payload instead of a generic greeting.
+- **The session is named after your task line** — no more renaming chats by
+  hand in the sidebar.
+
+Send it. The extension detects the payload, copies it, `watchctx` runs it, and
+ the result is pasted back. From here just keep chatting — ask for the next task
+when the result comes back.
+
+### 4. Pick the right AI for the job
+
+Not every model plays equally well with the tool protocol:
+
+| AI | Experience |
+|---|---|
+| **Claude** | Best overall — follows the payload format, stays on-rails on multi-step tasks. |
+| **DeepSeek** | Very close to Claude — fast, cheap, reliable. |
+| **Gemini** | Works, but less smooth — sometimes drifts from the format and needs re-prompting. |
+| **ChatGPT** | Same caveat as Gemini — usable, but the loop is not as fluid. |
+
+If you want the tool to feel invisible, prefer **Claude** or **DeepSeek**.
 
 ---
 

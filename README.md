@@ -267,8 +267,6 @@ Repo layout:
 - `runctx/` — main package
 - `runctx-extension/` — Chrome/Edge extension
 - `scripts/` — setup scripts (see [`scripts/README.md`](scripts/README.md))
-- `scripts/split-community.sh` / `scripts/sync-community.sh` — Community repo
-  build + sync (see [`docs/split/3-workflow.md`](docs/split/3-workflow.md))
 - `prompts/` — prompt templates
 - `tests/python/` — pytest test suite
 

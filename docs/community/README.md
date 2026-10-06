@@ -1,9 +1,7 @@
 # Community docs
 
-Docs in this folder ship into the **Community repo** (the public MIT build).
-They are the single source of truth for that build: edit them here in the Pro
-repo, then run `pnpm sync:community` to publish — never edit the Community repo
-directly.
+These docs describe the **Community (MIT) build** of Sonsery Flow. They are the
+public-facing documentation for that build.
 
 ## Contents
 
@@ -15,5 +13,5 @@ directly.
 | [`adapters.md`](adapters.md) | The 5 AI adapters + how to debug/add one |
 | [`tools.md`](tools.md) | Payload & response format for `shell` / `read` / `replace` / `write`, plus the bridge endpoints |
 
-These docs are maintained in the upstream repo and copied here by the build
-script — do not edit them in this repo directly.
+These docs are the reference for the Community build. If you spot something
+unclear, missing, or wrong, open an issue or a PR — contributions are welcome.
