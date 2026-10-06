@@ -576,3 +576,48 @@ body {
   padding: 0 4px;
   border-radius: var(--r-sm);
 }
+
+/* ============================================================
+   GLOBAL SCROLLBAR
+   Slim, rounded pill scrollbar applied app-wide: any scrollable
+   surface in the popup gets the same look, so the whole UI feels
+   consistent. Track stays transparent; thumb uses the shared
+   --scrollbar-thumb token so light/dark themes stay consistent.
+
+   Implementation notes:
+   - The universal selector `*` is intentional: instead of chasing
+     every scroll container class-by-class, we style any element
+     that produces a scrollbar. This covers future tabs too.
+   - Applies to the popup (popup.html) and every scroll surface it
+     renders. Surfaces that are injected outside the popup do not
+     load this file and declare their own scrollbar styling locally.
+   - Native Firefox scrollbar props (scrollbar-width/color) are set
+     first; WebKit pseudo-elements refine Chromium/Edge and give the
+     pill shape.
+   ============================================================ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--r-full);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-mute);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}

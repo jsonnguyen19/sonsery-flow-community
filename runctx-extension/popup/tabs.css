@@ -175,25 +175,7 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
-
-/* Slim scrollbar: matches .subrun-list so the whole extension feels
-   consistent. Track stays transparent; thumb is a rounded pill. */
-.tab-content.active::-webkit-scrollbar {
-  width: 6px;
-}
-
-.tab-content.active::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.tab-content.active::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: var(--r-full);
-}
-
-.tab-content.active::-webkit-scrollbar-thumb:hover {
-  background: var(--text-mute);
+  /* Scrollbar styling lives globally in base.css (see GLOBAL SCROLLBAR).
+     Do not re-declare scrollbar-width/color or ::-webkit-scrollbar here —
+     the more specific selector would override the app-wide pill style. */
 }
