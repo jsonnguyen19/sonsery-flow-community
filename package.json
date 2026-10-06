@@ -24,14 +24,14 @@
     "type": "git",
     "url": "git+https://github.com/jsonnguyen19/sonsery-flow-community.git"
   },
-  "homepage": "https://flow.sonsery.online/",
+  "homepage": "https://sonseryflow.vercel.app/",
   "bugs": {
     "url": "https://github.com/jsonnguyen19/sonsery-flow-community/issues"
   },
   "author": {
     "name": "Son Nguyen",
     "email": "hongsonit10@gmail.com",
-    "url": "https://jasonnguyen.website/"
+    "url": "https://jasonnguyen.vercel.app/"
   },
   "scripts": {
     "setup": "python3 scripts/setup.py || python scripts/setup.py",

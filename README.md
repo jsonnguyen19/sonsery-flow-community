@@ -246,9 +246,9 @@ No GPU, no Docker, no admin rights needed.
 
 ## Links
 
-- **Website / Landing page** — <https://flow.sonsery.online/>
+- **Website / Landing page** — <https://sonseryflow.vercel.app/>
 - **Community repo** — <https://github.com/jsonnguyen19/sonsery-flow-community>
-- **Author portfolio** — <https://jasonnguyen.website/>
+- **Author portfolio** — <https://jasonnguyen.vercel.app/>
 - **LinkedIn** — <https://www.linkedin.com/in/son-nguyen-650628344/>
 - **Contact** — hongsonit10@gmail.com
 - **Discord** — coming soon

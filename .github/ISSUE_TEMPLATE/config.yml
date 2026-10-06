@@ -7,5 +7,5 @@ contact_links:
     url: https://github.com/jsonnguyen19/sonsery-flow-community/security/advisories/new
     about: Report a security issue privately (do NOT open a public issue).
   - name: Website & docs
-    url: https://flow.sonsery.online/
+    url: https://sonseryflow.vercel.app/
     about: Landing page, setup guide, and feature overview for Sonsery Flow.

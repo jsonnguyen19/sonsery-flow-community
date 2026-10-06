@@ -4,8 +4,8 @@ Thanks for taking the time to contribute! This project is MIT-licensed and
 community-driven. Whether you file a bug, propose a feature, improve docs, or
 send a pull request — every contribution counts.
 
-> **Project links** — [Landing page](https://flow.sonsery.online/) ·
-> [Author portfolio](https://jasonnguyen.website/) ·
+> **Project links** — [Landing page](https://sonseryflow.vercel.app/) ·
+> [Author portfolio](https://jasonnguyen.vercel.app/) ·
 > [LinkedIn](https://www.linkedin.com/in/son-nguyen-650628344/) ·
 > [Issues](https://github.com/jsonnguyen19/sonsery-flow-community/issues) ·
 > Discord: coming soon.
