@@ -214,9 +214,14 @@
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 400px;
+  max-height: 180px;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* Payload section: shorter than Result (payload is usually the bulky one). */
+.hist-detail-body.is-payload {
+  max-height: 110px;
 }
 
 .hist-detail-loading,

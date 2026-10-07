@@ -160,18 +160,18 @@
 
     detail.innerHTML = "";
     // Detail returns FULL payload/result (unlike the list's 'summary' preview).
-    detail.appendChild(_section("Payload", payload.payload || payload.summary || ""));
+    detail.appendChild(_section("Payload", payload.payload || payload.summary || "", "is-payload"));
     detail.appendChild(_section("Result", payload.result || ""));
   }
 
-  function _section(title, body) {
+  function _section(title, body, extraClass) {
     const box = document.createElement("div");
     box.className = "hist-detail-section";
     const h = document.createElement("div");
     h.className = "hist-detail-title";
     h.textContent = title;
     const pre = document.createElement("pre");
-    pre.className = "hist-detail-body";
+    pre.className = "hist-detail-body" + (extraClass ? " " + extraClass : "");
     pre.textContent = body;
     box.appendChild(h);
     box.appendChild(pre);
