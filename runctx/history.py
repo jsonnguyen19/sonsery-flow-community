@@ -4,7 +4,7 @@ Pattern: in-memory list + JSON file persist, atomic write (tmp + os.replace),
 thread-safe via threading.Lock. Rotate FIFO when over cap.
 
 File: .state/payload_history.json (JSON array, newest first).
-Cap: configurable via Settings (default 100, min 20, max 1000).
+Cap: configurable via Settings (default 500, min 20, max 1000).
 Cap stored in .state/watchctx.history-cap (int as text).
 
 Row schema (stored to file):

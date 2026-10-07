@@ -81,7 +81,7 @@ QUEUE_TIMEOUT = 0.5
 HISTORY_FILE = STATE_DIR / "payload_history.json"
 HISTORY_CAP_FILE = STATE_DIR / "watchctx.history-cap"
 
-DEFAULT_CAP = 100
+DEFAULT_CAP = 500
 MIN_CAP = 20
 MAX_CAP = 1000
 
