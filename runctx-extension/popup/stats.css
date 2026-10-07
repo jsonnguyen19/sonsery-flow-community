@@ -1,6 +1,5 @@
-/* Stats tab container: mirrors the Pro layout so the Community build
-   (where stats-analytics.css is not shipped) still spaces the summary
-   grid from the operations row and keeps the section rhythm. */
+/* Stats tab container: keeps the summary grid spaced from the operations
+   row and preserves the section rhythm in every edition. */
 #tab-stats {
   gap: var(--sp-3);
 }
