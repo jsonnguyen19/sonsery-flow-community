@@ -10,7 +10,7 @@
 (function () {
   "use strict";
 
-  const CAP_DEFAULT = 100;
+  const CAP_DEFAULT = 500;
   const CAP_MIN = 20;
   const CAP_MAX = 1000;
   const LIST_LIMIT = 200;
@@ -21,6 +21,11 @@
   // Active chat_id filter. Empty string = show all rows. Read from the
   // #histChatFilter input; applied server-side via RpcClient.getHistory.
   let _chatFilter = "";
+  // Infinite scroll state: total rows the backend reports for the current
+  // filter, and whether a load-more request is in flight.
+  let _totalRows = 0;
+  let _loadingMore = false;
+  let _observer = null;
 
   function _keyOf(row) {
     return `${row.id}:${row.ts}`;
@@ -197,6 +202,15 @@
     listEl.appendChild(frag);
   }
 
+  // Append rows without wiping the existing list (used by load-more).
+  function _appendRows(rows) {
+    const listEl = document.getElementById("histList");
+    if (!listEl || !rows || rows.length === 0) return;
+    const frag = document.createDocumentFragment();
+    rows.forEach((row) => frag.appendChild(_rowEl(row)));
+    listEl.appendChild(frag);
+  }
+
   function _updateHeader(total, cap, filtered) {
     const countEl = document.getElementById("histCount");
     const capEl = document.getElementById("histCapLabel");
@@ -213,12 +227,16 @@
     try {
       const Rpc = _getRpc();
       if (!Rpc) {
+        _listCache = [];
+        _totalRows = 0;
         _renderList([]);
         _updateHeader(0, CAP_DEFAULT, false);
         return;
       }
       const res = await Rpc.getHistory(LIST_LIMIT, 0, _chatFilter || null);
       if (!res || !res.ok) {
+        _listCache = [];
+        _totalRows = 0;
         _renderList([]);
         _updateHeader(0, CAP_DEFAULT, false);
         return;
@@ -226,11 +244,55 @@
       const payload = res.data?.data?.[0];
       const rows = Array.isArray(payload?.rows) ? payload.rows : [];
       _listCache = rows;
+      _totalRows = payload?.total ?? rows.length;
       _renderList(rows);
-      _updateHeader(payload?.total ?? rows.length, payload?.cap ?? CAP_DEFAULT, !!payload?.chat_id);
+      _updateHeader(_totalRows, payload?.cap ?? CAP_DEFAULT, !!payload?.chat_id);
     } finally {
       _loading = false;
     }
+  }
+
+  // Load the next page and append. Triggered by the scroll sentinel.
+  async function _loadMore() {
+    if (_loading || _loadingMore) return;
+    if (_listCache.length >= _totalRows) return; // nothing left
+    const Rpc = _getRpc();
+    if (!Rpc) return;
+    _loadingMore = true;
+    try {
+      const res = await Rpc.getHistory(LIST_LIMIT, _listCache.length, _chatFilter || null);
+      if (!res || !res.ok) return;
+      const payload = res.data?.data?.[0];
+      const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+      if (rows.length === 0) {
+        // No more pages; sync total so we stop asking.
+        _totalRows = _listCache.length;
+        return;
+      }
+      _listCache = _listCache.concat(rows);
+      if (typeof payload?.total === "number") _totalRows = payload.total;
+      _appendRows(rows);
+    } finally {
+      _loadingMore = false;
+    }
+  }
+
+  // Observe a sentinel at the bottom of the viewport; when it enters view and
+  // there are more rows to fetch, load the next page.
+  function _setupInfiniteScroll() {
+    const viewport = document.getElementById("histViewport");
+    if (!viewport || _observer) return;
+    const sentinel = document.createElement("div");
+    sentinel.id = "histSentinel";
+    sentinel.style.height = "1px";
+    viewport.appendChild(sentinel);
+    _observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) _loadMore();
+      },
+      { root: viewport, rootMargin: "120px", threshold: 0 }
+    );
+    _observer.observe(sentinel);
   }
 
   async function _clearAll() {
@@ -244,6 +306,7 @@
       return;
     }
     _listCache = [];
+    _totalRows = 0;
     _renderList([]);
     _updateHeader(0, _readCurrentCap());
   }
@@ -296,7 +359,7 @@
         console.warn("[history] set cap failed:", res?.error);
         return;
       }
-      _updateHeader(undefined, cap);
+      _updateHeader(_totalRows, cap);
       // If the History tab is open, reload the list to reflect the change.
       const histTab = document.getElementById("tab-history");
       if (histTab?.classList.contains("active")) loadHistory();
@@ -342,6 +405,7 @@
     }
 
     setupHistorySettings();
+    _setupInfiniteScroll();
 
     // Load the cap into the settings input on startup.
     setTimeout(_loadCapToSettings, 200);
