@@ -35,17 +35,6 @@ async function getTokenState() {
 // addTokenUsage is now handled by background.js
 // Use chrome.runtime.sendMessage for token tracking
 
-async function resetTokenSession() {
-  const state = await getTokenState();
-  state.session = 0;
-  state.input = 0;
-  state.output = 0;
-  state.operations = [];
-  state.sessionStart = Date.now();
-  await chrome.storage.local.set({ [TOKEN_STORAGE_KEY]: state });
-  return state;
-}
-
 async function renderTokenStats() {
   try {
     const state = await getTokenState();
@@ -96,5 +85,4 @@ window.__RUNCTX_POPUP__.estimateTokens = estimateTokens;
 window.__RUNCTX_POPUP__.TOKEN_STORAGE_KEY = TOKEN_STORAGE_KEY;
 window.__RUNCTX_POPUP__.getDefaultTokenState = getDefaultTokenState;
 window.__RUNCTX_POPUP__.getTokenState = getTokenState;
-window.__RUNCTX_POPUP__.resetTokenSession = resetTokenSession;
 window.__RUNCTX_POPUP__.renderTokenStats = renderTokenStats;

@@ -121,6 +121,6 @@ PATH_BLOCKLIST: list[str] = []
 
 # 3 root kinds, each with a resolver (see runctx/root.py).
 # - project: watchctx pwd/active-root (default for read/write/git tools).
-# - package: tool root (prompts/ @@ mentions) — independent of pwd.
+# - package: tool root (prompts/) — independent of pwd.
 ROOT_PROJECT = "project"
 ROOT_PACKAGE = "package"

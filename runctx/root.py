@@ -102,7 +102,7 @@ def _resolve_package() -> Path:
 # consumers (rpc, ...) do not need to change any if/else.
 #
 # - project: watchctx pwd/active-root (default for any read/write/git tool).
-# - package: tool root (prompts/ mention @@) — does NOT depend on pwd.
+# - package: tool root (prompts/) — does NOT depend on pwd.
 _ROOT_RESOLVERS: dict[str, Callable[[], Path]] = {
     ROOT_PROJECT: _resolve_project,
     ROOT_PACKAGE: _resolve_package,

@@ -54,9 +54,6 @@ if (window.__RUNCTX_POPUP__?.setupHistoryTab) {
   window.__RUNCTX_POPUP__.setupHistoryTab();
 }
 
-// Setup reset tokens button
-setupResetTokensButton();
-
 // Automation toggle
 const automationInput = document.getElementById("automation");
 automationInput.addEventListener("change", sendStateToTab);

@@ -82,21 +82,8 @@ function setupPinButton() {
   });
 }
 
-function setupResetTokensButton() {
-  const resetTokensBtn = document.getElementById("resetTokensBtn");
-  if (resetTokensBtn) {
-    resetTokensBtn.addEventListener("click", async () => {
-      if (confirm("Reset session token count?")) {
-        await resetTokenSession();
-        await renderTokenStats();
-      }
-    });
-  }
-}
-
 // Expose to window for other scripts
 window.__RUNCTX_POPUP__ = window.__RUNCTX_POPUP__ || {};
 window.__RUNCTX_POPUP__.sendStateToTab = sendStateToTab;
 window.__RUNCTX_POPUP__.setupPinButton = setupPinButton;
-window.__RUNCTX_POPUP__.setupResetTokensButton = setupResetTokensButton;
 window.__RUNCTX_POPUP__.renderWatchStatus = renderWatchStatus;
