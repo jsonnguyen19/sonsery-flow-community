@@ -329,6 +329,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 const TOKEN_STORAGE_KEY = "tokenTracking";
 
+// Serialize all read-modify-write operations on `tokenTracking`.
+// Both addTokenUsage and resetTokenSession use `await` between read and
+// write, which yields to other microtasks — two concurrent calls could
+// interleave and clobber each other (lost-update on `total`). Every access
+// must go through withTokenLock so the sequence read→mutate→write is atomic
+// with respect to other token mutations.
+let _tokenQueue = Promise.resolve();
+function withTokenLock(fn) {
+  const run = _tokenQueue.then(fn, fn);
+  _tokenQueue = run.catch(() => {});
+  return run;
+}
+
 function estimateTokens(text) {
   if (!text) return 0;
   const charCount = typeof text === "string" ? text.length : JSON.stringify(text).length;
@@ -353,30 +366,32 @@ async function getTokenState() {
 }
 
 async function addTokenUsage({ input, output, label, type = "operation" }) {
-  const state = await getTokenState();
-  const total = (input || 0) + (output || 0);
+  return withTokenLock(async () => {
+    const state = await getTokenState();
+    const total = (input || 0) + (output || 0);
 
-  state.total += total;
-  state.session += total;
-  state.input += input || 0;
-  state.output += output || 0;
+    state.total += total;
+    state.session += total;
+    state.input += input || 0;
+    state.output += output || 0;
 
-  state.operations.push({
-    timestamp: Date.now(),
-    label: label || `${type} ${state.operations.length + 1}`,
-    type,
-    input: input || 0,
-    output: output || 0,
-    total,
+    state.operations.push({
+      timestamp: Date.now(),
+      label: label || `${type} ${state.operations.length + 1}`,
+      type,
+      input: input || 0,
+      output: output || 0,
+      total,
+    });
+
+    // Keep last 100 operations
+    if (state.operations.length > 100) {
+      state.operations = state.operations.slice(-100);
+    }
+
+    await chrome.storage.local.set({ [TOKEN_STORAGE_KEY]: state });
+    return state;
   });
-
-  // Keep last 100 operations
-  if (state.operations.length > 100) {
-    state.operations = state.operations.slice(-100);
-  }
-
-  await chrome.storage.local.set({ [TOKEN_STORAGE_KEY]: state });
-  return state;
 }
 
 // Listen for payload/result messages from content scripts
@@ -416,4 +431,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
     return true;
   }
+
+  if (message?.type === "RUNCTX_RESET_SESSION") {
+    resetTokenSession()
+      .then(() => sendResponse({ ok: true }))
+      .catch((e) => sendResponse({ ok: false, error: String(e?.message || e) }));
+    return true;
+  }
 });
+
+// Reset the CURRENT session counters. Runs through withTokenLock so the
+// read-modify-write sequence cannot interleave with addTokenUsage (which
+// would otherwise clobber the freshly-reset record and lose `total`).
+// Cumulative `total` is intentionally preserved.
+async function resetTokenSession() {
+  return withTokenLock(async () => {
+    const state = await getTokenState();
+    state.session = 0;
+    state.input = 0;
+    state.output = 0;
+    state.operations = [];
+    state.sessionStart = Date.now();
+    await chrome.storage.local.set({ [TOKEN_STORAGE_KEY]: state });
+    return state;
+  });
+}

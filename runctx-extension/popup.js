@@ -87,3 +87,9 @@ setInterval(async () => {
 
 // Also refresh when the popup opens
 setInterval(render, 1000);
+
+// Initial token render — ensures the panel is populated on open even if
+// storage.onChanged skipped an early update before the DOM was ready.
+if (typeof renderTokenStats === "function") {
+  renderTokenStats();
+}
