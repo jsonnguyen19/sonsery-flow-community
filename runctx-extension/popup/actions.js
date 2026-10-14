@@ -50,6 +50,23 @@ async function renderWatchStatus() {
   const statusEl = document.getElementById("statusEl");
   if (!statusEl) return;
 
+  // PERF GATE: when no tab is pinned, do NOT hit the bridge /state endpoint
+  // at all (render() runs every 1s via setInterval in popup.js). The header
+  // shows "not pinned" instead. As soon as a tab is pinned, the next render
+  // tick fetches /state again and the header behaves exactly like before.
+  let pinnedTabId = null;
+  try {
+    const st = await chrome.storage.local.get(["pinnedTabId"]);
+    pinnedTabId = st?.pinnedTabId ?? null;
+  } catch {
+    pinnedTabId = null;
+  }
+  if (!pinnedTabId) {
+    statusEl.textContent = "not pinned";
+    statusEl.classList.add("warn");
+    return;
+  }
+
   const state = await fetchWatchState();
   if (!state) {
     statusEl.textContent = "no watchctx";

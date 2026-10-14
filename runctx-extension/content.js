@@ -168,6 +168,64 @@ window.__RUNCTX__.getCurrentSessionId = getCurrentSessionId;
 let payloadTickRunning = false;
 let resultTickRunning = false;
 
+// ============================================================
+// REACTIVE ACTIVITY GATE (performance)
+// ============================================================
+// Previously the payload/result intervals ran on EVERY AI tab all the time
+// and only checked `isPinnedToThisTab()` INSIDE each tick. That meant every
+// tab fired a storage read every ~700ms/1000ms forever, even when nothing
+// was pinned -> wasted CPU/battery.
+//
+// Now intervals are only started when ALL conditions hold:
+//   - extension context valid
+//   - this tab is the pinned tab (pinnedTabId === ownTabId)
+//
+//
+// NOTE: `enabled` (automation on/off) is DELIBERATELY NOT part of this gate.
+// Manual mode (automation off, tab pinned) still needs the result interval
+// running so result-watcher can show "Result received" and let the user
+// paste the result by hand. Gating on `enabled` would break manual mode.
+// The `enabled` flag is still checked INSIDE payload/result watchers to
+// decide whether to auto-inject or just toast.
+//
+// `refreshActivityGate()` is called:
+//   - once after init (once ownTabId is known)
+//   - on every relevant chrome.storage change
+// This preserves the exact old behaviour (same tick cadence, same gating
+// logic inside ticks) but only pays the cost when the tab is actually pinned.
+let activityActive = false;
+let cachedPinnedTabId = null;
+
+function shouldRunIntervals() {
+  if (!isContextValidFlag || !isContextValid()) return false;
+  if (ownTabId === null || cachedPinnedTabId !== ownTabId) return false;
+  return true;
+}
+
+function refreshActivityGate() {
+  const shouldRun = shouldRunIntervals();
+  if (shouldRun === activityActive) return;
+  activityActive = shouldRun;
+  if (shouldRun) {
+    startIntervals();
+  } else {
+    stopAllIntervals();
+  }
+}
+
+// Load the cached gate inputs and (re)apply the gate. Called on init and on
+// every relevant storage change so intervals start/stop immediately.
+async function syncActivityGateFromStorage() {
+  try {
+    const state = await chrome.storage.local.get(["pinnedTabId"]);
+    cachedPinnedTabId = state.pinnedTabId ?? null;
+  } catch {
+    // storage failure -> be conservative: keep gate closed
+    cachedPinnedTabId = null;
+  }
+  refreshActivityGate();
+}
+
 // Cache own tabId once via background
 let ownTabId = null;
 try {
@@ -183,6 +241,9 @@ try {
     if (ownTabId !== null) {
       await loadProcessedQueue();
     }
+    // Now that ownTabId is known, read pinnedTabId and start the intervals
+    // only if this tab is the pinned one (regardless of automation on/off).
+    await syncActivityGateFromStorage();
   });
 } catch {
   // chrome.runtime already gone — nothing to do here.
@@ -338,19 +399,35 @@ async function isPinnedToThisTab() {
   }
 }
 
-// Start intervals immediately on load to preserve the legacy timing exactly
-// (first tick scheduled at T0). The speed factor may still be loading here,
-// but normal is 1.0 by default so its timing is identical to legacy.
-startIntervals();
+// Do NOT start intervals unconditionally: performance fix. Intervals are
+// started by refreshActivityGate() once we know this tab is pinned.
+// If the tab is not pinned, no interval runs at all, regardless of
+// automation on/off. See syncActivityGateFromStorage() called from the
+// RUNCTX_GET_TAB_ID reply.
 
-// Restart intervals when the speed setting changes so slow/fast take effect
-// without a page reload. Normal users never change this, so their intervals
-// are created once exactly like legacy.
+// Watch storage for all inputs that can flip the activity gate:
+//   - pinnedTabId (pin/unpin this tab) -> start/stop intervals
+//   - speedMode (restart intervals with new cadence while active)
+//
 if (chrome?.storage?.onChanged) {
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
+
     if (changes.speedMode) {
-      startIntervals();
+      // Only restart if intervals are currently active. The scaling is only
+      // applied at interval creation, so restart preserves behaviour.
+      if (activityActive) startIntervals();
+      return;
+    }
+
+    // `enabled` (automation on/off) does NOT affect the activity gate: a
+    // pinned tab keeps polling in manual mode so result-watcher can still
+    // show "Result received" for the user to paste by hand. Only the inner
+    // watcher logic consults `enabled`.
+
+    if (changes.pinnedTabId) {
+      // Pin/unpin -> (re)apply gate immediately. Cheap: rare user action.
+      syncActivityGateFromStorage();
     }
   });
 }
